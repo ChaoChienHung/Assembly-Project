@@ -4,8 +4,6 @@ INCLUDE Irvine32.inc
 
 main EQU start@0
 
-; Test
-
 ; Border
 
 TopBorder = 1
@@ -13,6 +11,30 @@ BottomBorder = 30
 LeftBorder = 1
 RightBorder = 63
 
+;Earth Ranger
+EarthRanger struct
+    body1  byte "  ______           _   _       _____                             "
+    body2  byte " |  ____|         | | | |     |  __ \                            "
+    body3  byte " | |__   __ _ _ __| |_| |__   | |__) |__ _ _ __   __ _  ___ _ __ "
+    body4  byte " |  __| / _` | '__| __| '_ \  |  _  // _` | '_ \ / _` |/ _ \ '__|"
+    body5  byte " | |___| (_| | |  | |_| | | | | | \ \ (_| | | | | (_| |  __/ |   "
+    body6  byte " |_____|\__,_|_|   \__|_| |_| |_|  \_\__,_|_| |_|\__, |\___|_|   "
+    body7  byte "                                                 |___/           "
+    body8  byte "  _____                      ___    _              _             _   "
+    body9  byte " |  __ \                    / _ \  | |            | |           | |  "
+    body10 byte " | |__) | __ ___  ___ ___  | | | | | |_ ___    ___| |_ __ _ _ __| |_ "
+    body11 byte " |  ___/ '__/ _ \/ __/ __| | | | | | __/ _ \  / __| __/ _` | '__| __|"
+    body12 byte " | |   | | |  __/\__ \__ \ | |_| | | || (_) | \__ \ || (_| | |  | |_ "
+    body13 byte " |_|   |_|  \___||___/___/  \___/   \__\___/  |___/\__\__,_|_|   \__|"
+    XY coord<8,8>
+
+    attribute1 word 69 DUP(1)
+    attribute2 word 69 DUP(9)
+    attribute3 word 69 DUP(15)
+    attribute4 word 69 DUP(10)
+    attribute5 word 69 DUP(2)
+    attribute6 word 69 DUP(14)
+EarthRanger ends
 ; Earth
 
 Earth struct
@@ -52,6 +74,7 @@ plane struct
     body3   byte    "/   \"
     body4   byte    "/     \"
     body5   byte    "/__[ ]__\"
+    body6   byte    "/ ||| \"
 plane ends
 
 lplane struct
@@ -60,6 +83,7 @@ lplane struct
     body3   byte    "/  \"
     body4   byte    "/    \"
     body5   byte    "/_|[___\"
+    body6   byte    "\\ \ \\"
 lplane ends
 
 rplane struct
@@ -68,6 +92,7 @@ rplane struct
     body3   byte    "/  \"
     body4   byte    "/    \"
     body5   byte    "/___|]_\"
+    body6   byte    "// / //"
 rplane ends
 
 ; Bullet
@@ -102,12 +127,16 @@ eraser3 byte "     "
 eraser4 byte "       "
 eraser5 byte "         "
 
+
 ;eraser for moving right or left
 eraser6     byte "  "
 eraser7     byte "   "
 eraser8     byte "    "
 eraser9     byte "      "
 eraser10    byte "        "
+
+;eraser for the tail
+eraser11    byte "       "
 
 ; my plane
 
@@ -132,7 +161,7 @@ meteor1 meteor<>
 meteor2 meteor<>
 meteor3 meteor<>
 meteor4 meteor<>
-spawning_time byte 0
+spawning_time word 0
 BoolFlying byte 0
 
 ; explosion
@@ -147,7 +176,7 @@ check DWORD ?
 
 MyEarth Earth<>
 
-
+GameName EarthRanger<>
 
 
 
@@ -159,9 +188,9 @@ main PROC
     ; get output handle
     invoke GetStdHandle, STD_OUTPUT_HANDLE
     mov outputHandle, eax
-
+    call Intro
+    call StartKey
     call SetUp
-
 ; game start
 Game :
     call Background
@@ -176,9 +205,21 @@ Game :
 main ENDP
 
 ; process
+StartKey proc uses eax
+    mov eax, 1000     ; delay for 1 second
+    call Delay
+L1:
+    call ReadKey
+    cmp al, '0'
+    je Start
+    jmp L1
+Start:
+    call clrscr
+    ret
+StartKey endp
 
 InputKey proc uses eax
-    mov eax, 50     ; delay for 0.05 seconds
+    mov eax, 20     ; delay for 0.02 seconds
     call Delay
 
     call ReadKey
@@ -211,6 +252,9 @@ NoKey:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body5, lengthof myplane.body5, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body6, lengthof myplane.body6, temp, addr check
     mov BoolMoveLeft, 0
     mov BoolMoveRight, 0
 
@@ -245,7 +289,9 @@ MoveLeft:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body5, lengthof mylplane.body5, temp, addr check
-
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body6, lengthof mylplane.body6, temp, addr check
     ; change mark
 
     mov BoolMoveLeft, 1
@@ -281,6 +327,9 @@ MoveRight:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body5, lengthof myrplane.body5, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body6, lengthof myrplane.body6, temp, addr check
 
     ; change mark
 
@@ -516,6 +565,7 @@ Hit proc uses eax ebx edx
 CheckMeteor1Flying:
     cmp meteor1.bool, 1
     je Meteor1IsFlying
+
     ret
 Meteor1IsFlying:
 ; check bullet1
@@ -678,6 +728,9 @@ DidNotMoveLastSecond:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser5, lengthof eraser5, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
     jmp finish
 
     ; if the plane move left last second
@@ -697,6 +750,9 @@ LastMoveWasLeft:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
     jmp finish
 
     ; if the plane move right last second
@@ -714,6 +770,9 @@ LastMoveWasRight:
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
     jmp finish
 
 finish:
@@ -737,7 +796,9 @@ SetUp proc uses eax
     dec temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body5, lengthof myplane.body5, temp, addr check
-
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body6, lengthof myplane.body6, temp, addr check
 
     ret
 
@@ -768,6 +829,55 @@ Background proc
 
 Background endp
 
+Intro proc
+    ; print earthranger
+    movzx eax, GameName.XY.X
+    mov temp.X, ax
+    movzx eax, GameName.XY.Y
+    mov temp.Y, ax
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body1, lengthof GameName.body1, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute1, lengthof GameName.body1, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body2, lengthof GameName.body2, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute1, lengthof GameName.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body3, lengthof GameName.body3, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute2, lengthof GameName.body3, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body4, lengthof GameName.body4, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute3, lengthof GameName.body4, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body5, lengthof GameName.body5, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute4, lengthof GameName.body5, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body6, lengthof GameName.body6, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute5, lengthof GameName.body4, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body7, lengthof GameName.body7, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute5, lengthof GameName.body5, temp, addr check
+    sub temp.X, 4
+    add temp.Y, 5
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body8, lengthof GameName.body8, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body8, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body9, lengthof GameName.body9, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body9, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body10, lengthof GameName.body10, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body10, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body11, lengthof GameName.body11, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body11, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body12, lengthof GameName.body12, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr GameName.body13, lengthof GameName.body13, temp, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr GameName.attribute6, lengthof GameName.body13, temp, addr check
+
+    ret
+
+Intro endp
 ; get x and y coordinate into temp
 
 GetTempXY proc uses eax
@@ -780,22 +890,22 @@ GetTempXY endp
 
 TimeToFly proc uses eax ebx
     inc spawning_time
-    movzx ax, spawning_time
-    mov bl, 5
+    mov ax, spawning_time
+    mov bl, 4
     div bl
     cmp ah, 0
-    je DivideByThree
+    je DivideByFour
     mov BoolFlying, 0
-CheckTwoMinutes:
+CheckMinutes:
     cmp spawning_time, 120
     je TwoMinutes
     ret
 TwoMinutes:
     mov spawning_time, 0
     ret
-DivideByThree:
+DivideByFour:
     mov BoolFlying, 1
-    jmp CheckTwoMinutes
+    jmp CheckMinutes
 TimeToFly endp
 
 END main
