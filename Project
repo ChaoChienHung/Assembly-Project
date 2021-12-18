@@ -4,6 +4,8 @@ INCLUDE Irvine32.inc
 
 main EQU start@0
 
+; Test
+
 ; Border
 
 TopBorder = 1
