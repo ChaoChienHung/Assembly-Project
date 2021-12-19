@@ -35,6 +35,43 @@ EarthRanger struct
     attribute5 word 69 DUP(2)
     attribute6 word 69 DUP(14)
 EarthRanger ends
+
+; Explosion
+ExplosionAnimation struct
+    body1 byte "*"
+    body2 byte "***"
+    body3 byte "* *"
+    body4 byte "*   *"
+    mode byte 0
+    XY coord <0,0>
+ExplosionAnimation ends
+
+; Background
+
+; Background Plane
+
+BackgroundPlane struct
+    body0   byte    "                   ___                   "
+    body1   byte    "                  /   \                  "
+    body2   byte    "               __/ (_) \__               "
+    body3   byte    "          ____/_ ======= _\____          "
+    body4   byte    " ________/ _/ (_)_______(_) \_ \________ "
+    body5   byte    "<________     | /   _   \ |     ________>"
+    body6   byte    "  O O O  \___  |   (_)   |  ___/  O O O  "
+    body7   byte    "             \__\_______/__/             "
+    PlaneLength dword LENGTHOF BackgroundPlane.body1
+    XY coord <72,3>
+BackgroundPlane ends
+
+; Background Border
+
+BackgroundBorder struct
+    body1 byte "________________________________________________________"
+    body2 byte "|                                                      |"
+    body3 byte "|______________________________________________________|"
+    XY coord<64,0>
+BackgroundBorder ends
+
 ; Earth
 
 Earth struct
@@ -53,16 +90,6 @@ Earth struct
     attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 15 DUP(2)
     attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
 Earth ends
-
-; Explosion
-ExplosionAnimation struct
-    body1 byte "*"
-    body2 byte "***"
-    body3 byte "* *"
-    body4 byte "*   *"
-    mode byte 0
-    XY coord <0,0>
-ExplosionAnimation ends
 
 
 ; Plane
@@ -173,9 +200,17 @@ explode3 ExplosionAnimation<>
 outputHandle DWORD ?
 check DWORD ?
 
-;Earth
+; Background
+
+; Earth
 
 MyEarth Earth<>
+
+; Background Border
+MyBackgroundBorder BackgroundBorder<>
+
+; Background Plane
+MyBackgroundPlane BackgroundPlane<>
 
 GameName EarthRanger<>
 
@@ -1368,9 +1403,45 @@ SetUp proc uses eax
 
 SetUp endp
 
-Background proc
+Background proc uses eax esi ecx
 
-    ; print earth
+    ; Print Background Border
+    movzx eax, MyBackgroundBorder.XY.X
+    mov temp.X, ax
+    movzx eax, MyBackgroundBorder.XY.Y
+    mov temp.Y, ax
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body1, lengthof MyBackgroundBorder.body1, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body3, lengthof MyBackgroundBorder.body1, temp, addr check
+
+
+    ; Print Earth
     movzx eax, MyEarth.XY.X
     mov temp.X, ax
     movzx eax, MyEarth.XY.Y
@@ -1389,6 +1460,27 @@ Background proc
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body5, lengthof MyEarth.body5, temp, addr check
     invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute5, lengthof MyEarth.body5, temp, addr check
+
+    ; Print Background Plane
+    movzx eax, MyBackgroundPlane.XY.X
+    mov temp.X, ax
+    movzx eax, MyBackgroundPlane.XY.Y
+    mov temp.Y, ax
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body0, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body1, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body2, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body3, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body4, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body5, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body6, MyBackgroundPlane.PlaneLength, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body7, MyBackgroundPlane.PlaneLength, temp, addr check
     ret
 
 Background endp
