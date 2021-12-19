@@ -38,19 +38,20 @@ EarthRanger ends
 ; Earth
 
 Earth struct
-    body1  byte    "           *****************************************"
-    body2  byte    "       **************~~~~~~~~~~~****~~~~~~**************"
-    body3  byte    "    ******************~~~~~~~~~~~***~~~~~~~~~**************"
-    body4  byte    "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~**************"
-    body5  byte    "**~~~~******~~~~~~~~~***~~~~~~~~~~~~~~~~~~~~~~~~~**********~~**"
 
-    XY coord <1,25>
+    body1  byte    "           ******************************************"
+    body2  byte    "       **************~~~~~~~~~~~****~~~~~~***************"
+    body3  byte    "    ******************~~~~~~~~~~~***~~~~~~~~~***************"
+    body4  byte    "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~***************"
+    body5  byte    "**~~~~******~~~~~~~~~***~~~~~~~~~~~~~~~~~~~~~~~~~***********~~**"
+
+    XY coord <0,25>
     ;Earth Color
-    attribute1 word 20 DUP(2), 12 DUP(1), 5 DUP(0Fh), 5 DUP(1), 10 DUP(2)
-    attribute2 word 21 DUP(2), 11 DUP(1), 4 DUP(0Fh), 6 DUP(1), 14 DUP(2)
-    attribute3 word 22 DUP(2), 11 DUP(1), 3 DUP(0Fh), 9 DUP(1), 14 DUP(2)
-    attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 14 DUP(2)
-    attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 10 DUP(2), 2 DUP(1), 2 DUP(2)
+    attribute1 word 20 DUP(2), 12 DUP(1), 5 DUP(0Fh), 5 DUP(1), 11 DUP(2)
+    attribute2 word 21 DUP(2), 11 DUP(1), 4 DUP(0Fh), 6 DUP(1), 15 DUP(2)
+    attribute3 word 22 DUP(2), 11 DUP(1), 3 DUP(0Fh), 9 DUP(1), 15 DUP(2)
+    attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 15 DUP(2)
+    attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
 Earth ends
 
 ; Explosion
@@ -198,7 +199,8 @@ Game :
     call BulletFly
     call SpawnMeteor
     call MeteorFly
-    call Hit
+    call BulletHit
+    call MeteorHitPlane
     call Explosion
     jmp Game
 
@@ -206,9 +208,9 @@ main ENDP
 
 ; process
 StartKey proc uses eax
-    mov eax, 1000     ; delay for 1 second
-    call Delay
 L1:
+    mov eax, 50    ; delay for 1 second
+    call Delay
     call ReadKey
     cmp al, '0'
     je Start
@@ -237,7 +239,7 @@ InputKey proc uses eax
 ; Did not input any key
 NoKey:
 
-    call ClearLastPosition
+    call ClearPlaneLastPosition
     invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body1, lengthof myplane.body1, pos, addr check
     call GetTempXY
     dec temp.X
@@ -270,7 +272,7 @@ MoveLeft:
 
     ; clear previous
 
-    call ClearLastPosition
+    call ClearPlaneLastPosition
 
     ; go to next position
     dec pos.X
@@ -310,7 +312,7 @@ MoveRight:
 
     ; clear previous
 
-    call ClearLastPosition
+    call ClearPlaneLastPosition
 
     ; go to next position
     inc pos.X
@@ -338,7 +340,6 @@ MoveRight:
 
 HitRightBorder:
     ret
-
 ; shooting
 
 Shoot:
@@ -398,6 +399,84 @@ quit:
     exit
 
 InputKey endp
+
+ClearPlaneLastPosition proc uses eax
+
+    call GetTempXY
+    ; check if last move is left
+    cmp BoolMoveLeft, 1
+    je LastMoveWasLeft
+    ; check if last move is right
+    cmp BoolMoveRight, 1
+    je LastMoveWasRight
+
+    ; if the plane stand still last second
+DidNotMoveLastSecond:
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser2, lengthof eraser2, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser3, lengthof eraser3, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser4, lengthof eraser4, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser5, lengthof eraser5, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
+    jmp finish
+
+    ; if the plane move left last second
+
+LastMoveWasLeft:
+    dec temp.X
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    inc temp.Y
+    dec temp.X
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser7, lengthof eraser7, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser8, lengthof eraser8, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser9, lengthof eraser9, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
+    jmp finish
+
+    ; if the plane move right last second
+
+LastMoveWasRight:
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser7, lengthof eraser7, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser8, lengthof eraser8, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser9, lengthof eraser9, temp, addr check
+    dec temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
+    inc temp.X
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
+    jmp finish
+
+finish:
+    ret
+ClearPlaneLastPosition endp
+
+
 
 BulletFly proc uses eax
 CheckBullet1:
@@ -560,7 +639,7 @@ MeteorFly endp
 
 ; hit
 
-Hit proc uses eax ebx edx
+BulletHit proc uses eax ebx edx
 
 CheckMeteor1Flying:
     cmp meteor1.bool, 1
@@ -619,7 +698,569 @@ explosion1:
 
 ; check bullet5
     ret
-Hit endp
+BulletHit endp
+
+MeteorHitPlane proc uses eax ebx edx
+
+; copy plane XY into temp
+    movzx eax, pos.X
+    mov temp.X, ax
+    movzx eax, pos.Y
+    mov temp.Y, ax
+
+; The plane move left
+    cmp BoolMoveLeft, 1
+    je MoveLeft
+
+
+; The plane move right
+    cmp BoolMoveRight, 1
+    je MoveRight
+
+; The plane stand still
+StandStill:
+    call CheckMeteorHitWhenStandStill
+
+MoveRight:
+    call CheckMeteorHitWhenMoveRight
+
+MoveLeft:
+    call CheckMeteorHitWhenMoveLeft
+
+    ret
+MeteorHitPlane endp
+
+CheckMeteorHitWhenStandStill proc uses eax ebx edx
+CheckMeteor1Flying:
+    cmp meteor1.bool, 1
+    je Meteor1IsFlying
+    ret
+Meteor1IsFlying:
+;compare with tip of the plane
+    mov bx, meteor1.XY.Y
+    mov dx, bx
+    inc bx
+    cmp temp.Y, bx
+    je SameAltitudeWithTip
+    cmp temp.Y, dx
+    je SameAltitudeWithTip
+;compare with one block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide1
+    cmp temp.Y, dx
+    je SameAltitudeWithSide1
+
+; compare with two block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide2
+    cmp temp.Y, dx
+    je SameAltitudeWithSide2
+
+; compare with three block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide3
+    cmp temp.Y, dx
+    je SameAltitudeWithSide3
+
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide4
+    cmp temp.Y, dx
+    je SameAltitudeWithSide4
+
+DidNotHitPlane:
+    ret
+
+;If the meteor is in the same altitude with the tip of the plane
+SameAltitudeWithTip:
+    mov ax, temp.X
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+    cmp ax, bx
+    je GotHit
+    cmp ax, dx
+    je GotHit
+    ret
+
+
+;If the meteor is in the same altitude with one block left/right of the plane
+SameAltitudeWithSide1:
+; right 1
+    inc temp.X
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; left 1
+    sub temp.X, 2
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with two block left/right of of the plane
+SameAltitudeWithSide2:
+; right 2
+    add temp.X,2
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; left 2
+    sub temp.X, 4
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with three block left/right of the plane
+SameAltitudeWithSide3:
+    ; right 3
+    add temp.X, 3
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; left 3
+    sub temp.X, 6
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+SameAltitudeWithSide4:
+    ; right 4
+    add temp.X, 4
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; left 4
+    sub temp.X, 8
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+    ret
+GotHit:
+    mov meteor1.bool, 0
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    dec temp.Y
+    jmp CheckExplosion
+
+    ret
+
+CheckExplosion:
+    cmp explode1.mode, 0
+    je explosion1
+    ret
+explosion1:
+    mov explode1.mode, 1
+    movzx eax, temp.X
+    mov explode1.XY.X, ax
+    movzx eax, temp.Y
+    mov explode1.XY.Y, ax
+    ret
+
+CheckMeteorHitWhenStandStill endp
+
+; The plane move left
+CheckMeteorHitWhenMoveRight proc uses eax ebx edx
+
+CheckMeteor1Flying:
+    cmp meteor1.bool, 1
+    je Meteor1IsFlying
+    ret
+
+Meteor1IsFlying:
+;compare with tip of the plane
+    mov bx, meteor1.XY.Y
+    mov dx, bx
+    inc bx
+    cmp temp.Y, bx
+    je SameAltitudeWithTip
+    cmp temp.Y, dx
+    je SameAltitudeWithTip
+;compare with one block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide1
+    cmp temp.Y, dx
+    je SameAltitudeWithSide1
+
+; compare with two block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide2
+    cmp temp.Y, dx
+    je SameAltitudeWithSide2
+
+; compare with three block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide3
+    cmp temp.Y, dx
+    je SameAltitudeWithSide3
+
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide4
+    cmp temp.Y, dx
+    je SameAltitudeWithSide4
+
+DidNotHitPlane:
+    ret
+
+;If the meteor is in the same altitude with the tip of the plane
+SameAltitudeWithTip:
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with tip
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+    inc temp.X
+; compare with right1
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with one block left/right of the plane
+SameAltitudeWithSide1:
+; right 1
+    inc temp.X
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right 1
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+; right 2
+    inc temp.X
+; compare with right 2
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+; body
+    sub temp.X, 2
+; compare with body
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with two block left/right of of the plane
+SameAltitudeWithSide2:
+; right 3
+    add temp.X, 3
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; body
+    sub temp.X, 3
+; compare with body
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+
+;If the meteor is in the same altitude with three block left/right of the plane
+SameAltitudeWithSide3:
+    ; right 4
+    add temp.X, 4
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; rleft 1
+    sub temp.X, 5
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+SameAltitudeWithSide4:
+    ; left 2
+    sub temp.X, 2
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; right 5
+    add temp.X, 7
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+    ret
+
+GotHit:
+    mov meteor1.bool, 0
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    dec temp.Y
+    jmp CheckExplosion
+    ret
+
+CheckExplosion:
+    cmp explode1.mode, 0
+    je explosion1
+    ret
+explosion1:
+    mov explode1.mode, 1
+    movzx eax, temp.X
+    mov explode1.XY.X, ax
+    movzx eax, temp.Y
+    mov explode1.XY.Y, ax
+    ret
+
+CheckMeteorHitWhenMoveRight endp
+
+
+
+
+CheckMeteorHitWhenMoveLeft proc uses eax ebx edx
+
+    CheckMeteor1Flying:
+    cmp meteor1.bool, 1
+    je Meteor1IsFlying
+    ret
+
+Meteor1IsFlying:
+;compare with tip of the plane
+    mov bx, meteor1.XY.Y
+    mov dx, bx
+    inc bx
+    cmp temp.Y, bx
+    je SameAltitudeWithTip
+    cmp temp.Y, dx
+    je SameAltitudeWithTip
+;compare with one block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide1
+    cmp temp.Y, dx
+    je SameAltitudeWithSide1
+
+; compare with two block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide2
+    cmp temp.Y, dx
+    je SameAltitudeWithSide2
+
+; compare with three block left/right of the plane
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide3
+    cmp temp.Y, dx
+    je SameAltitudeWithSide3
+
+    inc temp.Y
+    cmp temp.Y, bx
+    je SameAltitudeWithSide4
+    cmp temp.Y, dx
+    je SameAltitudeWithSide4
+
+DidNotHitPlane:
+    ret
+
+;If the meteor is in the same altitude with the tip of the plane
+SameAltitudeWithTip:
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with tip
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+    dec temp.X
+; compare with left 1
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with one block left/right of the plane
+SameAltitudeWithSide1:
+; left 1
+    dec temp.X
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with left 1
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+; left 2
+    dec temp.X
+; compare with left 2
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+; body
+    add temp.X, 2
+; compare with body
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+;If the meteor is in the same altitude with two block left/right of of the plane
+SameAltitudeWithSide2:
+; left 3
+    sub temp.X, 3
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; body
+    add temp.X, 3
+; compare with body
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+
+;If the meteor is in the same altitude with three block left/right of the plane
+SameAltitudeWithSide3:
+    ; left 4
+    sub temp.X, 4
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; right 1
+    add temp.X, 5
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+    ret
+
+SameAltitudeWithSide4:
+    ; right 2
+    add temp.X, 2
+    mov bx, meteor1.XY.X
+    mov dx, bx
+    inc dx
+; compare with right
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+; left 5
+    sub temp.X, 7
+; compare with left
+    cmp temp.X, bx
+    je GotHit
+    cmp temp.X, dx
+    je GotHit
+
+    ret
+
+GotHit:
+    mov meteor1.bool, 0
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+    dec temp.Y
+    jmp CheckExplosion
+    ret
+
+CheckExplosion:
+    cmp explode1.mode, 0
+    je explosion1
+    ret
+explosion1:
+    mov explode1.mode, 1
+    movzx eax, temp.X
+    mov explode1.XY.X, ax
+    movzx eax, temp.Y
+    mov explode1.XY.Y, ax
+    ret
+CheckMeteorHitWhenMoveLeft endp
+
 
 ; explosion
 
@@ -697,87 +1338,10 @@ Ex1M4:
     mov explode1.mode, 0
     ret
 
-
-
-
     ret
 Explosion endp
 
-ClearLastPosition proc uses eax
 
-    call GetTempXY
-    ; check if last step is left
-    cmp BoolMoveLeft, 1
-    je LastMoveWasLeft
-    ; check if last step is right
-    cmp BoolMoveRight, 1
-    je LastMoveWasRight
-
-    ; if the plane stand still last second
-DidNotMoveLastSecond:
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser2, lengthof eraser2, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser3, lengthof eraser3, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser4, lengthof eraser4, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser5, lengthof eraser5, temp, addr check
-    inc temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
-    jmp finish
-
-    ; if the plane move left last second
-
-LastMoveWasLeft:
-    dec temp.X
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    inc temp.Y
-    dec temp.X
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser7, lengthof eraser7, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser8, lengthof eraser8, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser9, lengthof eraser9, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
-    inc temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
-    jmp finish
-
-    ; if the plane move right last second
-
-LastMoveWasRight:
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser7, lengthof eraser7, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser8, lengthof eraser8, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser9, lengthof eraser9, temp, addr check
-    dec temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser10, lengthof eraser10, temp, addr check
-    inc temp.X
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
-    jmp finish
-
-finish:
-    ret
-ClearLastPosition endp
 
 SetUp proc uses eax
 
@@ -890,22 +1454,43 @@ GetTempXY endp
 
 TimeToFly proc uses eax ebx
     inc spawning_time
+    ;cmp spawning_time, 60
+    ;ja Fast
+
+Slow:
     mov ax, spawning_time
     mov bl, 4
     div bl
     cmp ah, 0
     je DivideByFour
     mov BoolFlying, 0
+
 CheckMinutes:
     cmp spawning_time, 120
     je TwoMinutes
     ret
+
+;;Fast:
+;;    mov ax, spawning_time
+;;    mov bl, 3
+;;    div bl
+;;   cmp ah,0
+;;   je DivideByThree
+;;    mov BoolFlying, 0
+;;    jmp CheckMinutes
+
 TwoMinutes:
     mov spawning_time, 0
     ret
+
 DivideByFour:
     mov BoolFlying, 1
     jmp CheckMinutes
+
+DivideByThree:
+    mov BoolFlying, 1
+    jmp CheckMinutes
+
 TimeToFly endp
 
 END main
