@@ -4,6 +4,10 @@ INCLUDE Irvine32.inc
 
 main EQU start@0
 
+HitByMeteor proto, temp_coord:coord
+
+CopyCoordFrom proto, temp1 : coord, temp2 : coord
+
 ; Border
 
 TopBorder = 1
@@ -910,25 +914,7 @@ SameAltitudeWithSide4:
 
     ret
 GotHit:
-    mov meteor1.bool, 0
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    dec temp.Y
-    jmp CheckExplosion
-
-    ret
-
-CheckExplosion:
-    cmp explode1.mode, 0
-    je explosion1
-    ret
-explosion1:
-    mov explode1.mode, 1
-    movzx eax, temp.X
-    mov explode1.XY.X, ax
-    movzx eax, temp.Y
-    mov explode1.XY.Y, ax
+    invoke HitByMeteor, temp
     ret
 
 CheckMeteorHitWhenStandStill endp
@@ -1094,24 +1080,7 @@ SameAltitudeWithSide4:
     ret
 
 GotHit:
-    mov meteor1.bool, 0
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    dec temp.Y
-    jmp CheckExplosion
-    ret
-
-CheckExplosion:
-    cmp explode1.mode, 0
-    je explosion1
-    ret
-explosion1:
-    mov explode1.mode, 1
-    movzx eax, temp.X
-    mov explode1.XY.X, ax
-    movzx eax, temp.Y
-    mov explode1.XY.Y, ax
+    invoke HitByMeteor, temp
     ret
 
 CheckMeteorHitWhenMoveRight endp
@@ -1279,24 +1248,7 @@ SameAltitudeWithSide4:
     ret
 
 GotHit:
-    mov meteor1.bool, 0
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
-    dec temp.Y
-    jmp CheckExplosion
-    ret
-
-CheckExplosion:
-    cmp explode1.mode, 0
-    je explosion1
-    ret
-explosion1:
-    mov explode1.mode, 1
-    movzx eax, temp.X
-    mov explode1.XY.X, ax
-    movzx eax, temp.Y
-    mov explode1.XY.Y, ax
+    invoke HitByMeteor, temp
     ret
 CheckMeteorHitWhenMoveLeft endp
 
@@ -1531,8 +1483,9 @@ GetTempXY proc uses eax
     ret
 GetTempXY endp
 
-TimeToFly proc uses eax ebx
 
+
+TimeToFly proc uses eax ebx
 
     inc spawning_time
     cmp NumberOfTwoSeconds, 15
@@ -1589,5 +1542,38 @@ DivideByThree:
     jmp CheckTwoSeconds
 
 TimeToFly endp
+
+HitByMeteor proc uses eax, temp_coord:coord
+
+    mov meteor1.bool, 0
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp_coord, addr check
+    inc temp_coord.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp_coord, addr check
+    dec temp_coord.Y
+    jmp CheckExplosion
+    ret
+
+CheckExplosion:
+    cmp explode1.mode, 0
+    je explosion1
+    ret
+explosion1:
+    mov explode1.mode, 1
+    movzx eax, temp_coord.X
+    mov explode1.XY.X, ax
+    movzx eax, temp_coord.Y
+    mov explode1.XY.Y, ax
+    ret
+
+HitByMeteor endp
+
+CopyCoordFrom proc uses eax, temp1 : coord, temp2 : coord
+    mov eax, 0
+    mov ax, temp1.X
+    mov temp2.X, ax
+    mov ax, temp1.Y
+    mov temp2.Y, ax
+    ret
+CopyCoordFrom endp
 
 END main
