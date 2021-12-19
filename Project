@@ -51,7 +51,7 @@ ExplosionAnimation ends
 ; Background Plane
 
 BackgroundPlane struct
-    body0   byte    "                   ___                   "
+    body0   byte    "                   _|_                   "
     body1   byte    "                  /   \                  "
     body2   byte    "               __/ (_) \__               "
     body3   byte    "          ____/_ ======= _\____          "
@@ -60,7 +60,6 @@ BackgroundPlane struct
     body6   byte    "  O O O  \___  |   (_)   |  ___/  O O O  "
     body7   byte    "             \__\_______/__/             "
     PlaneLength dword LENGTHOF BackgroundPlane.body1
-    XY coord <72,3>
 BackgroundPlane ends
 
 ; Background Border
@@ -76,18 +75,16 @@ BackgroundBorder ends
 
 Earth struct
 
-    body1  byte    "           ******************************************"
-    body2  byte    "       **************~~~~~~~~~~~****~~~~~~***************"
-    body3  byte    "    ******************~~~~~~~~~~~***~~~~~~~~~***************"
-    body4  byte    "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~***************"
+    body1  byte    "           ******************************************           "
+    body2  byte    "       **************~~~~~~~~~~~****~~~~~~***************       "
+    body3  byte    "    ******************~~~~~~~~~~~***~~~~~~~~~***************    "
+    body4  byte    "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~***************  "
     body5  byte    "**~~~~******~~~~~~~~~***~~~~~~~~~~~~~~~~~~~~~~~~~***********~~**"
-
-    XY coord <0,25>
     ;Earth Color
-    attribute1 word 20 DUP(2), 12 DUP(1), 5 DUP(0Fh), 5 DUP(1), 11 DUP(2)
-    attribute2 word 21 DUP(2), 11 DUP(1), 4 DUP(0Fh), 6 DUP(1), 15 DUP(2)
-    attribute3 word 22 DUP(2), 11 DUP(1), 3 DUP(0Fh), 9 DUP(1), 15 DUP(2)
-    attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 15 DUP(2)
+    attribute1 word 20 DUP(2), 12 DUP(1), 5 DUP(0Fh), 5 DUP(1), 22 DUP(2)
+    attribute2 word 21 DUP(2), 11 DUP(1), 4 DUP(0Fh), 6 DUP(1), 22 DUP(2)
+    attribute3 word 22 DUP(2), 11 DUP(1), 3 DUP(0Fh), 9 DUP(1), 19 DUP(2)
+    attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 17 DUP(2)
     attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
 Earth ends
 
@@ -189,7 +186,6 @@ meteor1 meteor<>
 meteor2 meteor<>
 meteor3 meteor<>
 meteor4 meteor<>
-spawning_time word 0
 BoolFlying byte 0
 
 ; explosion
@@ -209,10 +205,20 @@ MyEarth Earth<>
 ; Background Border
 MyBackgroundBorder BackgroundBorder<>
 
+; Speed Up Notification
+
+SpeedUpNotification byte "!WARNING! THE METEORS ARE DROPPING FASTER THAN BEFORE!"
+SpeedUpNotificationAttribute word 76 DUP (RED)
+BoolSpeedUpNotification byte 0
+
 ; Background Plane
 MyBackgroundPlane BackgroundPlane<>
 
 GameName EarthRanger<>
+
+; Time
+spawning_time word 0
+NumberOfTwoSeconds word 0
 
 
 
@@ -303,7 +309,7 @@ MoveLeft:
     mov ax, pos.X
     dec ax
     cmp ax, PlaneWidth
-    jb HitLeftBorder
+    jb HitBorder
 
     ; clear previous
 
@@ -333,8 +339,6 @@ MoveLeft:
 
     mov BoolMoveLeft, 1
     mov BoolMoveRight,0
-
-HitLeftBorder:
     ret
 
 ; input right key
@@ -343,7 +347,7 @@ MoveRight:
     mov ax, pos.X
     inc ax
     cmp ax, RightBorder-PlaneWidth+1
-    ja HitRightBorder
+    ja HitBorder
 
     ; clear previous
 
@@ -373,7 +377,7 @@ MoveRight:
     mov BoolMoveLeft, 0
     mov BoolMoveRight,1
 
-HitRightBorder:
+HitBorder:
     ret
 ; shooting
 
@@ -1404,83 +1408,66 @@ SetUp proc uses eax
 SetUp endp
 
 Background proc uses eax esi ecx
+    local WarningXY : coord
+    local BorderXY : coord
+    local PlaneXY : coord
+    local EarthXY : coord
 
+    mov BorderXY.X, 64
+    mov BorderXY.Y, 0
     ; Print Background Border
-    movzx eax, MyBackgroundBorder.XY.X
-    mov temp.X, ax
-    movzx eax, MyBackgroundBorder.XY.Y
-    mov temp.Y, ax
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body1, lengthof MyBackgroundBorder.body1, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body3, lengthof MyBackgroundBorder.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body1, lengthof MyBackgroundBorder.body1, BorderXY, addr check
+    inc BorderXY.Y
+    mov ecx, 13
+PrintBorder:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body2, lengthof MyBackgroundBorder.body2, BorderXY, addr check
+    inc BorderXY.Y
+    pop ecx
+    loop PrintBorder
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body3, lengthof MyBackgroundBorder.body1, BorderXY, addr check
 
 
     ; Print Earth
-    movzx eax, MyEarth.XY.X
-    mov temp.X, ax
-    movzx eax, MyEarth.XY.Y
-    mov temp.Y, ax
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body1, lengthof MyEarth.body1, temp, addr check
-    invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute1, lengthof MyEarth.body1, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body2, lengthof MyEarth.body2, temp, addr check
-    invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute2, lengthof MyEarth.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body3, lengthof MyEarth.body3, temp, addr check
-    invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute3, lengthof MyEarth.body3, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body4, lengthof MyEarth.body4, temp, addr check
-    invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute4, lengthof MyEarth.body4, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyEarth.body5, lengthof MyEarth.body5, temp, addr check
-    invoke WriteConsoleOutputAttribute, outputHandle, addr MyEarth.attribute5, lengthof MyEarth.body5, temp, addr check
+    mov EarthXY.X, 0
+    mov EarthXY.Y, 25
+    mov ecx, 5
+    mov esi, offset MyEarth.body1
+    mov edi, offset MyEarth.attribute1
+PrintEarth:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Earth.body1, EarthXY, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, edi, lengthof Earth.body1, EarthXY, addr check
+    inc EarthXY.Y
+    add esi, SIZEOF Earth.body1
+    add edi, SIZEOF Earth.attribute1
+    pop ecx
+    loop PrintEarth
 
     ; Print Background Plane
-    movzx eax, MyBackgroundPlane.XY.X
-    mov temp.X, ax
-    movzx eax, MyBackgroundPlane.XY.Y
-    mov temp.Y, ax
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body0, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body1, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body2, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body3, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body4, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body5, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body6, MyBackgroundPlane.PlaneLength, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundPlane.body7, MyBackgroundPlane.PlaneLength, temp, addr check
+    mov PlaneXY.X, 72
+    mov PlaneXY.Y, 3
+    mov esi, OFFSET MyBackgroundPlane.body0
+    mov ecx, 8
+PrintPlane:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, MyBackgroundPlane.PlaneLength, PlaneXY, addr check
+    inc PlaneXY.Y
+    add esi, MyBackgroundPlane.PlaneLength
+    pop ecx
+    loop PrintPlane
+
+; Print Speed Up Notification
+    cmp BoolSpeedUpNotification, 1
+    jne Finish
+    cmp spawning_time, 30
+    jb Finish
+    mov WarningXY.X, 65
+    mov WarningXY.Y, 12
+    invoke WriteConsoleOutputCharacter, outputHandle, addr SpeedUpNotification, lengthof SpeedUpNotification, WarningXY, addr check
+    invoke WriteConsoleOutputAttribute, outputHandle, addr SpeedUpNotificationAttribute, lengthof SpeedUpNotification, WarningXY, addr check
+
+Finish:
     ret
 
 Background endp
@@ -1545,9 +1532,15 @@ GetTempXY proc uses eax
 GetTempXY endp
 
 TimeToFly proc uses eax ebx
+
+
     inc spawning_time
-    ;cmp spawning_time, 60
-    ;ja Fast
+    cmp NumberOfTwoSeconds, 15
+    ja WarningNotification
+    mov BoolSpeedUpNotification, 0
+CheckSpeedUpTime :
+    cmp NumberOfTwoSeconds, 20
+    ja Fast
 
 Slow:
     mov ax, spawning_time
@@ -1557,31 +1550,43 @@ Slow:
     je DivideByFour
     mov BoolFlying, 0
 
-CheckMinutes:
-    cmp spawning_time, 120
-    je TwoMinutes
+CheckTwoSeconds:
+    cmp spawning_time, 60
+    je TwoSeconds
     ret
 
-;;Fast:
-;;    mov ax, spawning_time
-;;    mov bl, 3
-;;    div bl
-;;   cmp ah,0
-;;   je DivideByThree
-;;    mov BoolFlying, 0
-;;    jmp CheckMinutes
+WarningNotification:
+    mov BoolSpeedUpNotification, 1
+    jmp CheckSpeedUpTime
 
-TwoMinutes:
+Fast:
+    mov ax, spawning_time
+    mov bl, 3
+    div bl
+    cmp ah,0
+    je DivideByThree
+    mov BoolFlying, 0
+    jmp CheckTwoSeconds
+
+TwoSeconds:
+    inc NumberOfTwoSeconds
     mov spawning_time, 0
+    jmp CheckOneMinute
+
+CheckOneMinute:
+    cmp NumberOfTwoSeconds, 30
+    jne Finish
+    mov NumberOfTwoSeconds, 0
+Finish:
     ret
 
 DivideByFour:
     mov BoolFlying, 1
-    jmp CheckMinutes
+    jmp CheckTwoSeconds
 
 DivideByThree:
     mov BoolFlying, 1
-    jmp CheckMinutes
+    jmp CheckTwoSeconds
 
 TimeToFly endp
 
