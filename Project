@@ -103,7 +103,7 @@ plane struct
     body3   byte    "/   \"
     body4   byte    "/     \"
     body5   byte    "/__[ ]__\"
-    body6   byte    "/ ||| \"
+    body6   byte    "//|||\\"
 plane ends
 
 lplane struct
@@ -112,7 +112,7 @@ lplane struct
     body3   byte    "/  \"
     body4   byte    "/    \"
     body5   byte    "/_|[___\"
-    body6   byte    "\\ \ \\"
+    body6   byte    "\\\\\\\"
 lplane ends
 
 rplane struct
@@ -121,7 +121,7 @@ rplane struct
     body3   byte    "/  \"
     body4   byte    "/    \"
     body5   byte    "/___|]_\"
-    body6   byte    "// / //"
+    body6   byte    "///////"
 rplane ends
 
 ; Bullet
@@ -139,6 +139,33 @@ meteor struct
     XY coord<0,1>
 meteor ends
 
+GameOver struct
+    body1   byte    "   ____                         ___                 "
+    body2   byte    "  / ___| __ _ _ __ ___   ___   / _ \__   _____ _ __ "
+    body3   byte    " | |  _ / _` | '_ ` _ \ / _ \ | | | \ \ / / _ \ '__|"
+    body4   byte    " | |_| | (_| | | | | | |  __/ | |_| |\ V /  __/ |   "
+    body5   byte    "  \____|\__,_|_| |_| |_|\___|  \___/  \_/ \___|_|   "
+    body6   byte    "  _   _ _       _       ____                         "
+    body7   byte    " | | | (_) __ _| |__   / ___|  ___ ___  _ __ ___   _ "
+    body8   byte    " | |_| | |/ _` | '_ \  \___ \ / __/ _ \| '__/ _ \ (_)"
+    body9   byte    " |  _  | | (_| | | | |  ___) | (_| (_) | | |  __/  _ "
+    body10  byte    " |_| |_|_|\__, |_| |_| |____/ \___\___/|_|  \___| (_)"
+    body11  byte    "          |___/                                      "
+    bool byte 0
+    XY coord<8,8>
+GameOver ends
+
+Lifes struct
+    body1 byte " $$$$$$   $$$$$$ "
+    body2 byte "$$$$$$$$ $$$$$$$$"
+    body3 byte "$$$$$$$$$$$$$$$$$"
+    body4 byte " $$$$$$$$$$$$$$$ "
+    body5 byte "   $$$$$$$$$$$   "
+    body6 byte "     $$$$$$$     "
+    body7 byte "       $$$       "
+    body8 byte "        $        "
+    XY coord<64,18>
+Lifes ends
 .data
 
 ; Move Mark
@@ -166,6 +193,7 @@ eraser10    byte "        "
 
 ;eraser for the tail
 eraser11    byte "       "
+eraser12 byte "                 "
 
 ; my plane
 
@@ -217,9 +245,12 @@ BoolSpeedUpNotification byte 0
 
 ; Background Plane
 MyBackgroundPlane BackgroundPlane<>
-
+; Starting
 GameName EarthRanger<>
-
+; Game over
+Result GameOver<>
+; Life
+Heart Lifes<>
 ; Time
 spawning_time word 0
 NumberOfTwoSeconds word 0
@@ -246,9 +277,14 @@ Game :
     call MeteorFly
     call BulletHit
     call MeteorHitPlane
+    call Life
+    ;if hit by 3 times
+    cmp Result.bool, 3
+    je Game_over
     call Explosion
     jmp Game
-
+Game_over:
+    call Final
 main ENDP
 
 ; process
@@ -914,6 +950,7 @@ SameAltitudeWithSide4:
 
     ret
 GotHit:
+    add Result.bool, 1
     invoke HitByMeteor, temp
     ret
 
@@ -1081,6 +1118,7 @@ SameAltitudeWithSide4:
 
 GotHit:
     invoke HitByMeteor, temp
+    add Result.bool, 1
     ret
 
 CheckMeteorHitWhenMoveRight endp
@@ -1090,7 +1128,7 @@ CheckMeteorHitWhenMoveRight endp
 
 CheckMeteorHitWhenMoveLeft proc uses eax ebx edx
 
-    CheckMeteor1Flying:
+CheckMeteor1Flying:
     cmp meteor1.bool, 1
     je Meteor1IsFlying
     ret
@@ -1248,6 +1286,7 @@ SameAltitudeWithSide4:
     ret
 
 GotHit:
+    add Result.bool, 1
     invoke HitByMeteor, temp
     ret
 CheckMeteorHitWhenMoveLeft endp
@@ -1575,5 +1614,204 @@ CopyCoordFrom proc uses eax, temp1 : coord, temp2 : coord
     mov temp2.Y, ax
     ret
 CopyCoordFrom endp
+
+Final proc uses eax
+    ; print Game Over
+    call clrscr
+    movzx eax, Result.XY.X
+    mov temp.X, ax
+    movzx eax, Result.XY.Y
+    mov temp.Y, ax
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body1, lengthof Result.body1, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body2, lengthof Result.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body3, lengthof Result.body3, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body4, lengthof Result.body4, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body5, lengthof Result.body5, temp, addr check
+    sub temp.X, 4
+    add temp.Y, 5
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body6, lengthof Result.body6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body7, lengthof Result.body7, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body8, lengthof Result.body8, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body9, lengthof Result.body9, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body10, lengthof Result.body10, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Result.body11, lengthof Result.body11, temp, addr check
+    ret
+Final endp
+
+Life proc uses eax
+    movzx eax, Heart.XY.X
+    mov temp.X, ax
+    movzx eax, Heart.XY.Y
+    mov temp.Y, ax
+    cmp Result.bool, 1
+    ja Life1
+    je Life2
+    jb Life3
+;3 life remaining
+Life3:
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    sub temp.X, 36
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    sub temp.X, 36
+    sub temp.Y, 7
+    jmp EndofJudge
+;2 life remaining
+Life2:
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    sub temp.X, 18
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    sub temp.Y, 7
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    jmp EndofJudge
+;1 life remaining
+Life1:
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
+    sub temp.Y, 7
+    add temp.X, 18
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    inc temp.Y
+    jmp EndofJudge
+EndOfJudge:
+    ret
+Life endp
 
 END main
