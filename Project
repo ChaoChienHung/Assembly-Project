@@ -8,6 +8,7 @@ HitByMeteor proto, temp_coord:coord
 
 CopyCoordFrom proto, temp1 : coord, temp2 : coord
 
+PrintNum proto, number : byte, temp_coord : coord
 ; Border
 
 TopBorder = 1
@@ -92,6 +93,91 @@ Earth struct
     attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
 Earth ends
 
+One struct
+    body1 byte "   _   "
+    body2 byte "  / |  "
+    body3 byte "  | |  "
+    body4 byte "  | |  "
+    body5 byte "  |_|  "
+One ends
+
+Two struct
+    body1 byte " ____  "
+    body2 byte "|___ \ "
+    body3 byte " _ _) |"
+    body4 byte " / __/ "
+    body5 byte "|_____|"
+
+Two ends
+
+Three struct
+    body1 byte " _____ "
+    body2 byte "|___ / "
+    body3 byte "  |_ \ "
+    body4 byte "___ ) |"
+    body5 byte "|____/ "
+Three ends
+
+Four struct
+    body1 byte " _  _   "
+    body2 byte "| || |  "
+    body3 byte "| || |_ "
+    body4 byte "|__   _|"
+    body5 byte "   |_|  "
+Four ends
+
+Five struct
+    body1 byte " ____  "
+    body2 byte "| ___| "
+    body3 byte "|___ \ "
+    body4 byte " ___) |"
+    body5 byte "|____/ "
+
+Five ends
+
+Six struct
+    body1 byte "  __   "
+    body2 byte " / /_  "
+    body3 byte "| '_ \ "
+    body4 byte "| (_) |"
+    body5 byte " \___/ "
+Six ends
+
+Seven struct
+    body1 byte " _____ "
+    body2 byte "|___  |"
+    body3 byte "   / / "
+    body4 byte "  / /  "
+    body5 byte " /_/   "
+
+Seven ends
+
+Eight struct
+    body1 byte "  ___  "
+    body2 byte " ( _ ) "
+    body3 byte " / _ \ "
+    body4 byte "| (_) |"
+    body5 byte " \___/ "
+
+Eight ends
+
+Nine struct
+    body1 byte "  ___  "
+    body2 byte " / _ \ "
+    body3 byte "| (_) |"
+    body4 byte " \__, |"
+    body5 byte "   /_/ "
+
+Nine ends
+
+Zero struct
+    body1 byte "  ___  "
+    body2 byte " / _ \ "
+    body3 byte "| | | |"
+    body4 byte "| |_| |"
+    body5 byte " \___/ "
+
+Zero ends
 
 ; Plane
 
@@ -153,7 +239,7 @@ GameOver struct
     body10  byte    "   |_|\___/ \__,_|_|    |____/ \___\___/|_|  \___| (_)"
     body11  byte    "                                                      "
     bool byte 0
-    XY coord<22,5>
+    XY coord<31,5>
 GameOver ends
 
 Lifes struct
@@ -165,7 +251,7 @@ Lifes struct
     body6 byte "     $$$$$$$     "
     body7 byte "       $$$       "
     body8 byte "        $        "
-    XY coord<64,18>
+    XY coord<65,18>
 Lifes ends
 .data
 
@@ -234,6 +320,16 @@ check DWORD ?
 ; Score
 score word 0
 myscore byte "Score: ", 0
+score1 One<>
+score2 Two<>
+score3 Three<>
+score4 Four<>
+score5 Five<>
+score6 Six<>
+score7 Seven<>
+score8 Eight<>
+score9 Nine<>
+score0 Zero<>
 
 ; Earth
 
@@ -241,6 +337,7 @@ MyEarth Earth<>
 
 ; Background Border
 MyBackgroundBorder BackgroundBorder<>
+Border byte "|"
 
 ; Speed Up Notification
 
@@ -594,6 +691,7 @@ Bullet1_Flying:
     jae Bullet1_NotYetTop
     ; Bullet 1 is at top
     mov bullet1.bool, 0
+    mov bullet1.XY.Y, 25
     jmp CheckBullet2
 
 Bullet1_NotYetTop:
@@ -611,6 +709,7 @@ Bullet2_Flying:
     jae Bullet2_NotYetTop
     ; Bullet 2 is at top
     mov bullet2.bool, 0
+    mov bullet2.XY.Y, 25
     jmp CheckBullet3
 
 Bullet2_NotYetTop:
@@ -626,6 +725,7 @@ Bullet3_Flying:
     jae Bullet3_NotYetTop
     ; Bullet 3 is at top
     mov bullet3.bool, 0
+    mov bullet3.XY.Y, 25
     jmp CheckBullet4
 
 Bullet3_NotYetTop:
@@ -640,6 +740,7 @@ Bullet4_Flying:
     cmp ax, 1
     jae Bullet4_NotYetTop
     mov bullet4.bool, 0
+    mov bullet4.XY.Y, 25
     jmp CheckBullet5
 
 Bullet4_NotYetTop:
@@ -654,6 +755,7 @@ Bullet5_Flying:
     cmp ax , 1
     jae Bullet5_NotYetTop
     mov bullet5.bool, 0
+    mov bullet5.XY.Y, 25
     ret
 
 Bullet5_NotYetTop:
@@ -747,6 +849,7 @@ CheckMeteor1Flying:
 Meteor1IsFlying:
 
 check_bullet1:
+
     mov ax, bullet1.XY.Y
     mov bx, meteor1.XY.Y
     mov dx, bx
@@ -791,9 +894,11 @@ explosion11:
     mov explode1.XY.X, ax
     movzx eax, bullet1.XY.Y
     mov explode1.XY.Y, ax
+    mov bullet1.XY.Y, 25
     ret
 
 check_bullet2:
+
     mov ax, bullet2.XY.Y
     mov bx, meteor1.XY.Y
     mov dx, bx
@@ -838,6 +943,7 @@ explosion12:
     mov explode1.XY.X, ax
     movzx eax, bullet2.XY.Y
     mov explode1.XY.Y, ax
+    mov bullet2.XY.Y, 25
     ret
 
 
@@ -884,11 +990,13 @@ explosion13:
     mov explode1.XY.X, ax
     movzx eax, bullet3.XY.Y
     mov explode1.XY.Y, ax
+    mov bullet3.XY.Y, 25
     ret
 
 ; check bullet4
 
 ; check bullet5
+Finish:
     ret
 BulletHit endp
 
@@ -912,9 +1020,11 @@ MeteorHitPlane proc uses eax ebx edx
 ; The plane stand still
 StandStill:
     call CheckMeteorHitWhenStandStill
+    ret
 
 MoveRight:
     call CheckMeteorHitWhenMoveRight
+    ret
 
 MoveLeft:
     call CheckMeteorHitWhenMoveLeft
@@ -1531,6 +1641,20 @@ PrintBorder:
     loop PrintBorder
     invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body3, lengthof MyBackgroundBorder.body1, BorderXY, addr check
 
+    mov ecx, 14
+    mov BorderXY.X, 64
+    mov BorderXY.Y, 15
+PrintBottomBorder:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Border, 1, BorderXY, addr check
+    add BorderXY.X, 55
+    invoke WriteConsoleOutputCharacter, outputHandle, addr Border, 1, BorderXY, addr check
+    sub BorderXY.X, 55
+    inc BorderXY.Y
+    pop ecx
+    loop PrintBottomBorder
+    invoke WriteConsoleOutputCharacter, outputHandle, addr MyBackgroundBorder.body3, lengthof MyBackgroundBorder.body1, BorderXY, addr check
+
 
     ; Print Earth
     mov EarthXY.X, 0
@@ -1659,7 +1783,7 @@ CheckSpeedUpTime :
 
 Slow:
     mov ax, spawning_time
-    mov bl, 10
+    mov bl, 7
     div bl
     cmp ah, 0
     je DivideByFour
@@ -1738,7 +1862,7 @@ CopyCoordFrom proc uses eax, temp1 : coord, temp2 : coord
     ret
 CopyCoordFrom endp
 
-Final proc uses eax
+Final proc uses eax ebx ecx esi edi
     ; print Game Over
     call clrscr
     movzx eax, Result.XY.X
@@ -1756,7 +1880,7 @@ PrintG:
     pop ecx
     loop Printg
 
-    sub temp.X, 4
+    sub temp.X, 13
     add temp.Y, 6
     mov ecx, 6
     mov esi, offset Result.body6
@@ -1767,6 +1891,21 @@ PrintS:
     add esi, sizeof result.body6
     pop ecx
     loop PrintS
+
+    mov temp.X, 74
+    mov temp.Y, 16
+    mov ax, score
+    mov bl, 100
+    div bl
+    invoke PrintNum, al, temp
+    add temp.X, 8
+    movzx bx, ah
+    mov ax, bx
+    mov bl, 10
+    div bl
+    invoke PrintNum, al, temp
+    add temp.X, 8
+    invoke PrintNum, ah, temp
 
     ret
 Final endp
@@ -1850,5 +1989,120 @@ erase2l:
 EndOfJudge:
     ret
 Life endp
+
+PrintNum proc uses eax ecx, number : byte, temp_coord : coord
+
+    mov ecx, 5
+    mov esi, offset score0.body1
+    cmp number, 0
+    je pzero
+    mov esi, offset score1.body1
+    cmp number, 1
+    je pone
+    mov esi, offset score2.body1
+    cmp number, 2
+    je ptwo
+    mov esi, offset score3.body1
+    cmp number, 3
+    je pthree
+    mov esi, offset score4.body1
+    cmp number, 4
+    je pfour
+    mov esi, offset score5.body1
+    cmp number, 5
+    je pfive
+    mov esi, offset score6.body1
+    cmp number, 6
+    je psix
+    mov esi, offset score7.body1
+    cmp number, 7
+    je pseven
+    mov esi, offset score8.body1
+    cmp number, 8
+    je peight
+    mov esi, offset score9.body1
+pnine:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof nine.body1, temp_coord, addr check
+    add esi, sizeof nine.body1
+    inc temp_coord.Y
+    pop ecx
+    loop pnine
+    ret
+
+pzero:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof zero.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof zero.body1
+    pop ecx
+    loop pzero
+    ret
+
+pone:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof one.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof one.body1
+    pop ecx
+    loop pone
+    ret
+ptwo:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof two.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof two.body1
+    pop ecx
+    loop ptwo
+    ret
+pthree:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof three.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof three.body1
+    pop ecx
+    loop pthree
+    ret
+pfour:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof four.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof four.body1
+    pop ecx
+    loop pfour
+    ret
+pfive:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof five.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof five.body1
+    pop ecx
+    loop pfive
+    ret
+psix:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof six.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof six.body1
+    pop ecx
+    loop psix
+    ret
+pseven:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof seven.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof seven.body1
+    pop ecx
+    loop pseven
+    ret
+peight:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, sizeof eight.body1, temp_coord, addr check
+    inc temp_coord.Y
+    add esi, sizeof eight.body1
+    pop ecx
+    loop peight
+    ret
+PrintNum endp
 
 END main
