@@ -1658,157 +1658,70 @@ Life proc uses eax
     jb Life3
 ;3 life remaining
 Life3:
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    mov ecx, 8
+    mov esi, offset Heart.body1
+print3l:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     sub temp.X, 36
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    sub temp.X, 36
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    sub temp.X, 36
-    sub temp.Y, 7
+    add esi, sizeof Heart.body1
+    pop ecx
+    loop print3l
+
+    sub temp.Y, 8
     jmp EndofJudge
 ;2 life remaining
 Life2:
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    mov ecx, 8
+    mov esi, offset Heart.body1
+print2l:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     sub temp.X, 18
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    sub temp.X, 18
+    add esi, sizeof Heart.body1
+    pop ecx
+    loop print2l
+
+    sub temp.Y, 8
+    add temp.X, 36
+    mov ecx, 8
+    mov esi, offset eraser12
+erase1l:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof eraser12, temp, addr check
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    sub temp.X, 18
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    sub temp.X, 18
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    sub temp.X, 18
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    sub temp.X, 18
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    sub temp.X, 18
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    sub temp.Y, 7
-    add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
+    pop ecx
+    loop erase1l
     jmp EndofJudge
 ;1 life remaining
 Life1:
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body1, lengthof Heart.body1, temp, addr check
+    mov ecx, 8
+    mov esi, offset heart.body1
+print1l:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof Heart.body1, temp, addr check
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body2, lengthof Heart.body2, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body3, lengthof Heart.body3, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body4, lengthof Heart.body4, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body5, lengthof Heart.body5, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body6, lengthof Heart.body6, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body7, lengthof Heart.body7, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr Heart.body8, lengthof Heart.body8, temp, addr check
-    sub temp.Y, 7
+    add esi, sizeof heart.body1
+    pop ecx
+    loop print1l
+    sub temp.Y, 8
     add temp.X, 18
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
+    mov ecx, 8
+    mov esi, offset eraser12
+erase2l:
+    push ecx
+    invoke WriteConsoleOutputCharacter, outputHandle, esi, lengthof eraser12, temp, addr check
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr eraser12, lengthof eraser12, temp, addr check
-    inc temp.Y
+    pop ecx
+    loop erase2l
     jmp EndofJudge
 EndOfJudge:
     ret
