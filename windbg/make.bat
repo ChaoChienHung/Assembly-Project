@@ -5,11 +5,11 @@ REM Uses MicroSoft Macro Assembler version 6.11 and 32-bit Incremental Linker ve
 REM Created by Huang 
 
 REM delete related files
-del spaceshipX.lst
-del spaceshipX.obj
-del spaceshipX.ilk
-del spaceshipX.pdb
-del spaceshipX.exe
+del SpaceshipX.lst
+del SpaceshipX.obj
+del SpaceshipX.ilk
+del SpaceshipX.pdb
+del SpaceshipX.exe
 
 setlocal 
 set INCLUDE=C:\WINdbgFolder\;	REM 這裡要設成WINdbgFolder的路徑
@@ -22,7 +22,7 @@ REM /Zi         generate symbolic debugging information for WinDBG
 REM /Fl		Generate a listing file
  
 
-ML /c /coff /Zi   spaceshipX.asm
+ML /c /coff /Zi   SpaceshipX.asm
 if errorlevel 1 goto terminate
 
 REM /debug              generate symbolic debugging information
@@ -36,12 +36,13 @@ REM Kernel32.lib        library procedures to be invoked from the program
 REM irvine32.lib
 REM user32.lib
 
-LINK /INCREMENTAL:no /debug /subsystem:console /entry:start /out:spaceshipX.exe spaceshipX.obj Kernel32.lib irvine32.lib user32.lib
+LINK /INCREMENTAL:no /debug /subsystem:console /entry:start /out:SpaceshipX.exe SpaceshipX.obj Kernel32.lib irvine32.lib user32.lib
 if errorlevel 1 goto terminate
 
 REM Display all files related to this program:
-DIR spaceshipX.*
+DIR SpaceshipX.*
 
 :terminate
 pause
+
 endlocal
