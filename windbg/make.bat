@@ -12,7 +12,7 @@ del SpaceshipX.pdb
 del SpaceshipX.exe
 
 setlocal 
-set INCLUDE=C:\WINdbgFolder\;	REM 這裡要設成WINdbgFolder的路徑
+set INCLUDE=C:\WINdbgFolder\;	REM Set this to the WinDbg installation directory
 set LIB=C:\WINdbgFolder\;
 set PATH=C:\WINdbgFolder\;
 
@@ -46,3 +46,4 @@ DIR SpaceshipX.*
 pause
 
 endlocal
+
