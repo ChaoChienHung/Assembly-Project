@@ -1,23 +1,66 @@
-TITLE MASM Template    					(Project.asm)
+TITLE MASM Template                        (Project.asm)
 
 INCLUDE Irvine32.inc
 
+; ------------------------------------------------------------
+; main entry point in Irvine32 uses decorated symbol start@0
+; This EQU tells MASM that "main" refers to start@0, so that
+; you can write "call main" if needed.
+; ------------------------------------------------------------
 main EQU start@0
 
+
+; ------------------------------------------------------------
+; External PROCEDURE DECLARATIONS
+; These prototypes inform MASM about procedures implemented
+; elsewhere in your project.
+; ------------------------------------------------------------
+
+; Determines whether the player has been hit by a meteor.
+; temp_coord : coordinate of the meteor or collision object.
 HitByMeteor proto, temp_coord:coord
 
+; Copies one coord structure into another.
+; temp1 : source coordinate
+; temp2 : destination coordinate
 CopyCoordFrom proto, temp1 : coord, temp2 : coord
 
+; Prints a number on screen at a given coordinate.
+; number : byte to print
+; temp_coord : screen position
 PrintNum proto, number : byte, temp_coord : coord
-; Border
 
-TopBorder = 1
+
+; ------------------------------------------------------------
+; GAME BOUNDARIES (Screen Limits)
+; These constants define the playable area.
+; Modify these if window size changes.
+; ------------------------------------------------------------
+TopBorder    = 1
 BottomBorder = 30
-LeftBorder = 1
-RightBorder = 63
+LeftBorder   = 1
+RightBorder  = 63
 
-;Earth Ranger
+
+; ============================================================
+;                  EARTH RANGER SHIP STRUCTURE
+; ============================================================
+; This struct defines the Earth Ranger ASCII-art ship along
+; with its on-screen coordinate and color attributes.
+;
+; - body1–body13 : Each line of ASCII art for the ship.
+; - XY           : coord structure specifying initial position.
+; - attribute#   : Each line's color attributes (69 chars wide)
+;                  used with Windows console API or WriteConsole
+;                  depending on how you draw your sprite.
+;
+; You can expand attributes if you add colored effects, weapons,
+; animations, etc.
+; ============================================================
+
 EarthRanger struct
+
+    ; ASCII art for the ship (13 lines)
     body1  byte "  ______           _   _       _____                             "
     body2  byte " |  ____|         | | | |     |  __ \                            "
     body3  byte " | |__   __ _ _ __| |_| |__   | |__) |__ _ _ __   __ _  ___ _ __ "
@@ -31,14 +74,39 @@ EarthRanger struct
     body11 byte " |  ___/ '__/ _ \/ __/ __| | | | | | __/ _ \  / __| __/ _` | '__| __|"
     body12 byte " | |   | | |  __/\__ \__ \ | |_| | | || (_) | \__ \ || (_| | |  | |_ "
     body13 byte " |_|   |_|  \___||___/___/  \___/   \__\___/  |___/\__\__,_|_|   \__|"
+
+    ; ------------------------------------------------------------
+    ; Initial position of the ship on screen.
+    ; coord <X,Y> means:
+    ;   X = 22 : Column
+    ;   Y = 5  : Row
+    ; ------------------------------------------------------------
     XY coord<22,5>
 
+
+    ; ------------------------------------------------------------
+    ; Color attributes for each line of ASCII art.
+    ; Each line uses 69 characters, so the attribute arrays
+    ; must be 69 WORDs long.
+    ;
+    ; Example interpretation:
+    ;   1  = Blue
+    ;   9  = Light Blue
+    ;  15  = White
+    ;  10  = Light Green
+    ;   2  = Dark Green
+    ;  14  = Yellow
+    ;
+    ; These give you flexibility to color each pixel (char)
+    ; of the ship individually.
+    ; ------------------------------------------------------------
     attribute1 word 69 DUP(1)
     attribute2 word 69 DUP(9)
     attribute3 word 69 DUP(15)
     attribute4 word 69 DUP(10)
     attribute5 word 69 DUP(2)
     attribute6 word 69 DUP(14)
+
 EarthRanger ends
 
 ; Explosion
