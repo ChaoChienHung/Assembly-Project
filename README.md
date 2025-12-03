@@ -30,7 +30,7 @@ SpaceshipX/
 - Windows OS
 - MASM (ml.exe)
 - Irvine32 library (Irvine32.inc, Irvine32.lib, Irvine32.dll)
-- WinDbg (for debugging and running the game)
+- WinDbg (optional, only needed for debugging)
 
 The Irvine32 library and WinDbg are provided in the windbg folder.
 
@@ -40,5 +40,12 @@ The Irvine32 library and WinDbg are provided in the windbg folder.
 
 1. Clone the repository
 2. Move the `SpaceshipX.asm` file into the `windbg` folder and navigate to it
-3. Run `make.bat` (it is normal if some files are not found)
-4. Run the `SpaceshipX.exe` file
+3. Edit the default filepath (C:\WINdbgFolder\) in `make.bat` to point to your WinDbg installation directory
+4. Run `make.bat` (it is normal if some files are not found)
+5. Run the `SpaceshipX.exe` file
+
+---
+
+## Acknowledgement
+
+We would like to thank Microsoft WinDbg for providing a powerful debugging tool, and the Professor and TA of the National Central University Assembly Language and System Programming course for their excellent introduction and example files for running assembly programs.
