@@ -1,2 +1,3 @@
 - [ ] Implement additional weapon types featuring unique bullet trajectories
 - [ ] Add detailed code comments to improve readability and maintainability
+- [ ] Highscore feature
