@@ -7,7 +7,7 @@ In the game, the player controls a spaceship to shoot bullets and destroy incomi
 
 ## Features
 
-- Control the spaceship using the keyboard: arrow keys (Up, Down, Left, Right) to move, and Space to shoot.
+- Control the spaceship using the keyboard: arrow keys (W, S, A, D) to move, and Space to shoot.
 - Shoot bullets to destroy incoming comets
 - Protect the Earth from destruction
 - Planned enhancements: multiple weapon types, collectibles, and advanced enemy patterns
