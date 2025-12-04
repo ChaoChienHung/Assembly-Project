@@ -43,24 +43,40 @@ RightBorder  = 63
 
 
 ; ============================================================
-;                  EARTH RANGER SHIP STRUCTURE
+;                EARTH RANGER GAME – DATA STRUCTURES
 ; ============================================================
-; This struct defines the Earth Ranger ASCII-art ship along
-; with its on-screen coordinate and color attributes.
+; This file defines all visual/gameplay structures:
+;   - Player ship ("EarthRanger")
+;   - Explosion animation frames
+;   - Background elements (plane + border)
+;   - Earth (large sprite with per-pixel color attributes)
+;   - Number sprites (0–9)
+;   - Player bullets
+;   - Meteorites
+;   - Game Over screen
+;   - Life icon
 ;
-; - body1–body13 : Each line of ASCII art for the ship.
-; - XY           : coord structure specifying initial position.
-; - attribute#   : Each line's color attributes (69 chars wide)
-;                  used with Windows console API or WriteConsole
-;                  depending on how you draw your sprite.
+; All structures use ASCII graphics stored as byte strings.
+; Many include coordinate (coord) structures allowing them
+; to be drawn anywhere on the console.
 ;
-; You can expand attributes if you add colored effects, weapons,
-; animations, etc.
+; ============================================================
+
+
+; ============================================================
+;                     EARTH RANGER SHIP
+; ============================================================
+; This structure contains:
+;   - 13 ASCII-art lines forming the ship
+;   - XY starting position (upper-left corner)
+;   - 6 sets of color attributes (one per body line)
+;     Each attribute line uses 69 WORDs = one color per char.
 ; ============================================================
 
 EarthRanger struct
 
-    ; ASCII art for the ship (13 lines)
+    ; Each body# is one line of the ASCII ship.
+    ; All lines must be the same width (69 chars).
     body1  byte "  ______           _   _       _____                             "
     body2  byte " |  ____|         | | | |     |  __ \                            "
     body3  byte " | |__   __ _ _ __| |_| |__   | |__) |__ _ _ __   __ _  ___ _ __ "
@@ -75,31 +91,21 @@ EarthRanger struct
     body12 byte " | |   | | |  __/\__ \__ \ | |_| | | || (_) | \__ \ || (_| | |  | |_ "
     body13 byte " |_|   |_|  \___||___/___/  \___/   \__\___/  |___/\__\__,_|_|   \__|"
 
-    ; ------------------------------------------------------------
-    ; Initial position of the ship on screen.
-    ; coord <X,Y> means:
-    ;   X = 22 : Column
-    ;   Y = 5  : Row
-    ; ------------------------------------------------------------
+    ; Initial display position of ship.
+    ; coord<X,Y>:
+    ;     X = horizontal column
+    ;     Y = vertical row
     XY coord<22,5>
 
-
-    ; ------------------------------------------------------------
-    ; Color attributes for each line of ASCII art.
-    ; Each line uses 69 characters, so the attribute arrays
-    ; must be 69 WORDs long.
-    ;
-    ; Example interpretation:
-    ;   1  = Blue
-    ;   9  = Light Blue
-    ;  15  = White
-    ;  10  = Light Green
-    ;   2  = Dark Green
-    ;  14  = Yellow
-    ;
-    ; These give you flexibility to color each pixel (char)
-    ; of the ship individually.
-    ; ------------------------------------------------------------
+    ; Per-character color attributes for each row of the ship.
+    ; 69 values because each body line is 69 chars wide.
+    ; Example color meanings (Windows ConsoleAttribute):
+    ;   1 = Blue
+    ;   2 = Dark Green
+    ;   9 = Light Blue
+    ;  10 = Light Green
+    ;  14 = Yellow
+    ;  15 = White
     attribute1 word 69 DUP(1)
     attribute2 word 69 DUP(9)
     attribute3 word 69 DUP(15)
@@ -109,19 +115,32 @@ EarthRanger struct
 
 EarthRanger ends
 
-; Explosion
+
+; ============================================================
+;                     EXPLOSION ANIMATION
+; ============================================================
+; Simple set of explosion patterns used when the ship or
+; meteor explodes. “mode” selects which frame is displayed.
+; ============================================================
+
 ExplosionAnimation struct
-    body1 byte "*"
-    body2 byte "***"
-    body3 byte "* *"
-    body4 byte "*   *"
-    mode byte 0
-    XY coord <0,0>
+    body1 byte "*"         ; Small spark (frame 0)
+    body2 byte "***"       ; Wider burst (frame 1)
+    body3 byte "* *"       ; Hollow center (frame 2)
+    body4 byte "*   *"     ; Largest frame (frame 3)
+
+    mode byte 0             ; Current animation frame index
+    XY coord <0,0>          ; Explosion position
 ExplosionAnimation ends
 
-; Background
 
-; Background Plane
+; ============================================================
+;                     BACKGROUND PLANE
+; ============================================================
+; This ASCII plane is used to create a scrolling or stationary
+; background behind the main gameplay.
+; PlaneLength stores the length of body1.
+; ============================================================
 
 BackgroundPlane struct
     body0   byte    "                   _|_                   "
@@ -132,10 +151,19 @@ BackgroundPlane struct
     body5   byte    "<________     | /   _   \ |     ________>"
     body6   byte    "  O O O  \___  |   (_)   |  ___/  O O O  "
     body7   byte    "             \__\_______/__/             "
+
+    ; CHARACTER WIDTH OF PLANE (used for drawing/scrolling)
     PlaneLength dword LENGTHOF BackgroundPlane.body1
+
 BackgroundPlane ends
 
-; Background Border
+
+; ============================================================
+;                     BACKGROUND BORDER
+; ============================================================
+; Visual border positioning the playfield area.
+; XY determines upper-left placement.
+; ============================================================
 
 BackgroundBorder struct
     body1 byte "________________________________________________________"
@@ -144,22 +172,42 @@ BackgroundBorder struct
     XY coord<64,0>
 BackgroundBorder ends
 
-; Earth
+
+; ============================================================
+;                             EARTH
+; ============================================================
+; Large ASCII art sphere with detailed color mapping.
+; Each “attribute#” line contains per-character WORD colors.
+; ============================================================
 
 Earth struct
 
-    body1  byte    "           ******************************************           "
-    body2  byte    "       **************~~~~~~~~~~~****~~~~~~***************       "
-    body3  byte    "    ******************~~~~~~~~~~~***~~~~~~~~~***************    "
-    body4  byte    "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~***************  "
-    body5  byte    "**~~~~******~~~~~~~~~***~~~~~~~~~~~~~~~~~~~~~~~~~***********~~**"
-    ;Earth Color
+    body1  byte "           ******************************************           "
+    body2  byte "       **************~~~~~~~~~~~****~~~~~~***************       "
+    body3  byte "    ******************~~~~~~~~~~~***~~~~~~~~~***************    "
+    body4  byte "  **************~~~****~~~~~~~~~~~~~~~~~~~~~~~~***************  "
+    body5  byte "**~~~~******~~~~~~~~~***~~~~~~~~~~~~~~~~~~~~~~~~~***********~~**"
+
+    ; Color map for each pixel of Earth (foreground colors)
+    ; Numbers represent Windows console color attributes.
     attribute1 word 20 DUP(2), 12 DUP(1), 5 DUP(0Fh), 5 DUP(1), 22 DUP(2)
     attribute2 word 21 DUP(2), 11 DUP(1), 4 DUP(0Fh), 6 DUP(1), 22 DUP(2)
     attribute3 word 22 DUP(2), 11 DUP(1), 3 DUP(0Fh), 9 DUP(1), 19 DUP(2)
     attribute4 word 16 DUP(2), 3 DUP(1), 4 DUP(2), 24 DUP(1), 17 DUP(2)
-    attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), 25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
+    attribute5 word 2 DUP(2), 4 DUP(1), 6 DUP(2), 9 DUP(1), 3 DUP(2), \
+                     25 DUP(1), 11 DUP(2), 2 DUP(1), 2 DUP(2)
+
 Earth ends
+
+
+; ============================================================
+;                        NUMBER SPRITES
+; ============================================================
+; Each number is 5 rows tall and used for:
+;   - Score display
+;   - Countdown timers
+;   - Level indicators
+; ============================================================
 
 One struct
     body1 byte "   _   "
@@ -175,7 +223,6 @@ Two struct
     body3 byte " _ _) |"
     body4 byte " / __/ "
     body5 byte "|_____|"
-
 Two ends
 
 Three struct
@@ -200,7 +247,6 @@ Five struct
     body3 byte "|___ \ "
     body4 byte " ___) |"
     body5 byte "|____/ "
-
 Five ends
 
 Six struct
@@ -217,7 +263,6 @@ Seven struct
     body3 byte "   / / "
     body4 byte "  / /  "
     body5 byte " /_/   "
-
 Seven ends
 
 Eight struct
@@ -226,7 +271,6 @@ Eight struct
     body3 byte " / _ \ "
     body4 byte "| (_) |"
     body5 byte " \___/ "
-
 Eight ends
 
 Nine struct
@@ -235,7 +279,6 @@ Nine struct
     body3 byte "| (_) |"
     body4 byte " \__, |"
     body5 byte "   /_/ "
-
 Nine ends
 
 Zero struct
@@ -244,12 +287,21 @@ Zero struct
     body3 byte "| | | |"
     body4 byte "| |_| |"
     body5 byte " \___/ "
-
 Zero ends
 
-; Plane
 
-PlaneWidth = 5
+; ============================================================
+;                         PLAYER PLANE
+; ============================================================
+; 3 plane types:
+;   plane  = straight
+;   lplane = tilted left
+;   rplane = tilted right
+;
+; Used for player rotation animation or enemy sprites.
+; ============================================================
+
+PlaneWidth = 5   ; Width used for collision/draw logic
 
 plane struct
     body1   byte    "^"
@@ -278,20 +330,43 @@ rplane struct
     body6   byte    "///////"
 rplane ends
 
-; Bullet
+
+; ============================================================
+;                           BULLET
+; ============================================================
+; body  = appearance of bullet
+; bool  = active flag (1=bullet exists, 0=not in use)
+; XY    = current position on screen
+; ============================================================
+
 bullet struct
-    body byte "|"
-    bool byte 0
-    XY coord <>
+    body byte "|"         ; Single vertical bullet
+    bool byte 0           ; Active/not active
+    XY coord <>           ; Position assigned when fired
 bullet ends
 
-; Meteorite
+
+; ============================================================
+;                         METEORITE
+; ============================================================
+; 2x2 meteor sprite
+; bool flag determines if meteor is active
+; ============================================================
+
 meteor struct
     body1 byte "##"
     body2 byte "##"
     bool byte 0
-    XY coord<0,1>
+    XY coord<0,1>         ; Start slightly off-screen vertically
 meteor ends
+
+
+; ============================================================
+;                        GAME OVER SCREEN
+; ============================================================
+; Large ASCII banner displayed when player loses.
+; bool flag controls visibility.
+; ============================================================
 
 GameOver struct
 
@@ -306,9 +381,19 @@ GameOver struct
     body9   byte    "   | | (_) | |_| | |     ___) | (_| (_) | | |  __/  _ "
     body10  byte    "   |_|\___/ \__,_|_|    |____/ \___\___/|_|  \___| (_)"
     body11  byte    "                                                      "
-    bool byte 0
-    XY coord<31,5>
+
+    bool byte 0           ; 0 = not shown, 1 = shown
+    XY coord<31,5>        ; Center-ish placement
+
 GameOver ends
+
+
+; ============================================================
+;                          LIFE ICON
+; ============================================================
+; ASCII heart-like graphic used to display player lives.
+; XY controls where lives are drawn (typically upper-right).
+; ============================================================
 
 Lifes struct
     body1 byte " $$$$$$   $$$$$$ "
@@ -321,73 +406,133 @@ Lifes struct
     body8 byte "        $        "
     XY coord<65,18>
 Lifes ends
+
+
 .data
+; ============================================================
+; MOVEMENT STATE FLAGS
+; ============================================================
+; BoolMoveLeft   = 1 when plane moved left in the previous frame
+; BoolMoveRight  = 1 when plane moved right in the previous frame
+; These are used by ClearPlaneLastPosition to determine how the 
+; aircraft tail and previous position should be erased.
+; ============================================================
 
-; Move Mark
-
-BoolMoveLeft byte 0
-BoolMoveRight byte 0
-
-
-; Clear
-
-;Eraser for still
-eraser1 byte " "
-eraser2 byte "   "
-eraser3 byte "     "
-eraser4 byte "       "
-eraser5 byte "         "
+BoolMoveLeft   byte 0
+BoolMoveRight  byte 0
 
 
-;eraser for moving right or left
-eraser6     byte "  "
-eraser7     byte "   "
-eraser8     byte "    "
-eraser9     byte "      "
-eraser10    byte "        "
+; ============================================================
+; ERASERS – BLANK ASCII STRINGS USED TO CLEAR PREVIOUS DRAW
+; ============================================================
+; Each eraser corresponds to the width of a plane body row.
+; For smooth movement you must erase exact column widths.
+; ============================================================
 
-;eraser for the tail
-eraser11    byte "       "
-eraser12 byte "                 "
+; Erasers for standing (straight plane)
+eraser1  byte " "           ; Row 1 (1 char)
+eraser2  byte "   "         ; Row 2 (3 chars)
+eraser3  byte "     "       ; Row 3 (5 chars)
+eraser4  byte "       "     ; Row 4 (7 chars)
+eraser5  byte "         "   ; Row 5 (9 chars)
 
-; my plane
+; Erasers for left/right movement (slanted plane)
+eraser6  byte "  "          ; Row 1
+eraser7  byte "   "         ; Row 2
+eraser8  byte "    "        ; Row 3
+eraser9  byte "      "      ; Row 4
+eraser10 byte "        "    ; Row 5
 
-myplane plane <>
-mylplane lplane <>
-myrplane rplane <>
-mytest BYTE '1'
-pos coord <33,18>
+; Erasers for tail / lowest row
+eraser11 byte "       "     ; For last visual row of plane
+eraser12 byte "                 " ; Wide area erase (unused here)
 
 
+; ============================================================
+; PLAYER PLANE INSTANCES
+; ============================================================
+; myplane  = plane facing forward (straight)
+; mylplane = left-tilted plane
+; myrplane = right-tilted plane
+; mytest   = simple debug/test character
+; pos      = current top-left coordinate of the plane
+; ============================================================
+
+myplane  plane <>      ; Neutral orientation sprite
+mylplane lplane <>     ; Left-tilting sprite
+myrplane rplane <>     ; Right-tilting sprite
+mytest BYTE '1'        ; Possibly a debug or placeholder
+pos coord <33,18>      ; Initial player position
+
+; Temporary coordinate for drawing multi-row sprites
 temp COORD <>
 
-; bullets
+
+; ============================================================
+; PLAYER BULLETS
+; ============================================================
+; Each bullet has:
+;   - body (visual symbol)
+;   - bool (active/inactive)
+;   - XY (current position)
+; Up to 5 bullets available (3 used by default)
+; ============================================================
+
 bullet1 bullet<>
 bullet2 bullet<>
 bullet3 bullet<>
 bullet4 bullet<>
 bullet5 bullet<>
 
-; meteorite
+
+; ============================================================
+; METEOR INSTANCES
+; ============================================================
+; 4 meteor objects falling from top.
+; BoolFlying determines if meteors currently spawn/accelerate.
+; ============================================================
+
 meteor1 meteor<>
 meteor2 meteor<>
 meteor3 meteor<>
 meteor4 meteor<>
-BoolFlying byte 0
+BoolFlying byte 0          ; meteor speed-up trigger
 
-; explosion
+
+; ============================================================
+; EXPLOSION ANIMATIONS
+; ============================================================
+; Each explosion instance contains:
+;   - body1–body4 (frames)
+;   - mode (current frame)
+;   - XY (position)
+; explosions1/2/3 are available for bullets & plane collisions
+; ============================================================
+
 explode1 ExplosionAnimation<>
 explode2 ExplosionAnimation<>
 explode3 ExplosionAnimation<>
-; handle
-outputHandle DWORD ?
-check DWORD ?
 
-; Background
 
-; Score
-score word 0
+; ============================================================
+; HANDLE STORAGE FOR WINDOWS API OUTPUT
+; ============================================================
+
+outputHandle DWORD ?        ; Console output handle
+check        DWORD ?        ; Stores returned characters count
+
+
+; ============================================================
+; SCORE SYSTEM
+; ============================================================
+; score  = numeric score
+; myscore = prefix "Score: "
+; score# = ASCII sprite digits for displaying score
+; ============================================================
+
+score  word 0
 myscore byte "Score: ", 0
+
 score1 One<>
 score2 Two<>
 score3 Three<>
@@ -399,47 +544,94 @@ score8 Eight<>
 score9 Nine<>
 score0 Zero<>
 
-; Earth
+
+; ============================================================
+; EARTH SPRITE INSTANCE
+; ============================================================
 
 MyEarth Earth<>
 
-; Background Border
-MyBackgroundBorder BackgroundBorder<>
-Border byte "|"
 
-; Speed Up Notification
+; ============================================================
+; BACKGROUND BORDER
+; ============================================================
+
+MyBackgroundBorder BackgroundBorder<>
+Border byte "|"             ; Simple border symbol for collision check
+
+
+; ============================================================
+; SPEED-UP NOTIFICATION
+; ============================================================
+; Displays warning text when meteor speed increases.
+; SpeedUpNotificationAttribute = color array for each letter.
+; BoolSpeedUpNotification = 1 when message should be shown.
+; ============================================================
 
 SpeedUpNotification byte "!WARNING! THE METEORS ARE DROPPING FASTER THAN BEFORE!"
 SpeedUpNotificationAttribute word 76 DUP (RED)
 BoolSpeedUpNotification byte 0
 
-; Background Plane
+
+; ============================================================
+; BACKGROUND PLANE
+; ============================================================
+
 MyBackgroundPlane BackgroundPlane<>
-; Starting
+
+
+; ============================================================
+; "EARTH RANGER" TITLE SCREEN
+; ============================================================
+
 GameName EarthRanger<>
-; Game over
+
+
+; ============================================================
+; GAME OVER SCREEN
+; ============================================================
+
 Result GameOver<>
-; Life
+
+
+; ============================================================
+; PLAYER LIFE ICON
+; ============================================================
+
 Heart Lifes<>
-; Time
-spawning_time word 0
-NumberOfTwoSeconds word 0
+
+
+; ============================================================
+; TIME MANAGEMENT / SPAWN TIMERS
+; ============================================================
+; spawning_time         = general meteor spawn cooldown
+; NumberOfTwoSeconds    = counts 2-second intervals (speed-up)
+; ============================================================
+
+spawning_time       word 0
+NumberOfTwoSeconds  word 0
 
 
 
+; ============================================================
 .code
+; ============================================================
 main PROC
-
     call clrscr
 
-    ; get output handle
+    ; Retrieve Windows console output handle
     invoke GetStdHandle, STD_OUTPUT_HANDLE
     mov outputHandle, eax
-    call Intro
-    call StartKey
-    call SetUp
-; game start
-Game :
+
+    call Intro          ; Show title screen
+    call StartKey       ; Wait for user to press key '0'
+    call SetUp          ; Initialize game state
+
+; ============================================================
+;                     MAIN GAME LOOP
+; ============================================================
+
+Game:
     call Background
     call InputKey
     call BulletFly
@@ -448,35 +640,63 @@ Game :
     call BulletHit
     call MeteorHitPlane
     call Life
-    ;if hit by 3 times
+
+    ; If plane was hit 3 times → game over
     cmp Result.bool, 3
     je Game_over
+
     call Explosion
     jmp Game
+
 Game_over:
     call Final
 main ENDP
 
-; process
+
+
+; ============================================================
+; WAIT FOR START KEY
+; ============================================================
+; StartKey waits for the player to press '0'.
+; Game begins only when '0' is detected.
+; ============================================================
+
 StartKey proc uses eax
 L1:
-    mov eax, 50    ; delay for 1 second
+    mov eax, 50     ; Delay ~1 second
     call Delay
+
     call ReadKey
     cmp al, '0'
     je Start
+
     jmp L1
+
 Start:
     call clrscr
     ret
 StartKey endp
 
+
+
+; ============================================================
+; INPUT KEY PROCESSING
+; ============================================================
+; Handles:
+;   A  → Move left
+;   D  → Move right
+;   SPACE → Shoot
+;   ESC → Quit game
+;
+; If no key pressed: draws the plane in neutral orientation.
+; ============================================================
+
 InputKey proc uses eax
-    mov eax, 20     ; delay for 0.02 seconds
+    mov eax, 20     ; Delay ~0.02 sec (smooth control)
     call Delay
 
     call ReadKey
-    jz NoKey
+    jz NoKey        ; No key pressed?
 
     cmp al, 'a'
     je MoveLeft
@@ -487,109 +707,166 @@ InputKey proc uses eax
     cmp dx, VK_ESCAPE
     je quit
 
-; Did not input any key
-NoKey:
+; ------------------------------------------------------------
+; No input: draw straight plane
+; ------------------------------------------------------------
 
+NoKey:
     call ClearPlaneLastPosition
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body1, lengthof myplane.body1, pos, addr check
+
+    ; Draw row 1
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body1, \
+            lengthof myplane.body1, pos, addr check
+
+    ; Build temp = pos + (x-1, y+1)
     call GetTempXY
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body2, lengthof myplane.body2, temp, addr check
+
+    ; Draw row 2
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body2, \
+            lengthof myplane.body2, temp, addr check
+
+    ; Row 3
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body3, lengthof myplane.body3, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body3, \
+            lengthof myplane.body3, temp, addr check
+
+    ; Row 4
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body4, lengthof myplane.body4, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body4, \
+            lengthof myplane.body4, temp, addr check
+
+    ; Row 5
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body5, lengthof myplane.body5, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body5, \
+            lengthof myplane.body5, temp, addr check
+
+    ; Tail
     inc temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body6, lengthof myplane.body6, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myplane.body6, \
+            lengthof myplane.body6, temp, addr check
+
     mov BoolMoveLeft, 0
     mov BoolMoveRight, 0
-
     ret
 
-; input left key
-MoveLeft:
 
+
+; ============================================================
+; MOVE LEFT
+; ============================================================
+
+MoveLeft:
+    ; Check if moving left hits boundary
     mov ax, pos.X
     dec ax
     cmp ax, PlaneWidth
     jb HitBorder
 
-    ; clear previous
-
+    ; Clear previous graphics
     call ClearPlaneLastPosition
 
-    ; go to next position
+    ; Update X
     dec pos.X
+
+    ; Draw left tilted plane
     call GetTempXY
     dec temp.X
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body1, lengthof mylplane.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body1, \
+            lengthof mylplane.body1, temp, addr check
+
     inc temp.Y
     dec temp.X
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body2, lengthof mylplane.body2, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body2, \
+            lengthof mylplane.body2, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body3, lengthof mylplane.body3, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body3, \
+            lengthof mylplane.body3, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body4, lengthof mylplane.body4, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body4, \
+            lengthof mylplane.body4, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body5, lengthof mylplane.body5, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body5, \
+            lengthof mylplane.body5, temp, addr check
+
     inc temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body6, lengthof mylplane.body6, temp, addr check
-    ; change mark
+    invoke WriteConsoleOutputCharacter, outputHandle, addr mylplane.body6, \
+            lengthof mylplane.body6, temp, addr check
 
     mov BoolMoveLeft, 1
-    mov BoolMoveRight,0
+    mov BoolMoveRight, 0
     ret
 
-; input right key
-MoveRight:
 
+
+; ============================================================
+; MOVE RIGHT
+; ============================================================
+
+MoveRight:
     mov ax, pos.X
     inc ax
-    cmp ax, RightBorder-PlaneWidth+1
+    cmp ax, RightBorder - PlaneWidth + 1
     ja HitBorder
-
-    ; clear previous
 
     call ClearPlaneLastPosition
 
-    ; go to next position
     inc pos.X
+
     call GetTempXY
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body1, lengthof myrplane.body1, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body1, \
+            lengthof myrplane.body1, temp, addr check
+
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body2, lengthof myrplane.body2, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body2, \
+            lengthof myrplane.body2, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body3, lengthof myrplane.body3, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body3, \
+            lengthof myrplane.body3, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body4, lengthof myrplane.body4, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body4, \
+            lengthof myrplane.body4, temp, addr check
+
     dec temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body5, lengthof myrplane.body5, temp, addr check
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body5, \
+            lengthof myrplane.body5, temp, addr check
+
     inc temp.X
     inc temp.Y
-    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body6, lengthof myrplane.body6, temp, addr check
-
-    ; change mark
+    invoke WriteConsoleOutputCharacter, outputHandle, addr myrplane.body6, \
+            lengthof myrplane.body6, temp, addr check
 
     mov BoolMoveLeft, 0
     mov BoolMoveRight,1
 
 HitBorder:
     ret
-; shooting
+
+
+
+; ============================================================
+; SHOOTING SYSTEM
+; ============================================================
+; First available (inactive) bullet is activated.
+; Bullet starting position = current plane position.
+; ============================================================
 
 Shoot:
     cmp bullet1.bool, 1
@@ -598,11 +875,9 @@ Shoot:
     jne Shoot_Bullet2
     cmp bullet3.bool, 1
     jne Shoot_Bullet3
-    ;cmp BoolBullet4, 1
-    ;jne Shoot_Bullet4
-    ;cmp BoolBullet5, 1
-    ;jne Shoot_Bullet5
+    ; bullet4/5 disabled optionally
     ret
+
 Shoot_Bullet1:
     mov bullet1.bool, 1
     movzx eax, pos.X
@@ -627,39 +902,35 @@ Shoot_Bullet3:
     mov bullet3.XY.Y, ax
     ret
 
-Shoot_Bullet4:
-    mov bullet4.bool, 1
-    movzx eax, pos.X
-    mov bullet4.XY.X, ax
-    movzx eax, pos.Y
-    mov bullet4.XY.Y, ax
-    ret
 
-Shoot_Bullet5:
-    mov bullet5.bool, 1
-    movzx eax, pos.X
-    mov bullet5.XY.X, ax
-    movzx eax, pos.Y
-    mov bullet5.XY.Y, ax
-    ret
-
-; exit
+; Exit program
 quit:
     exit
 
 InputKey endp
 
+
+
+; ============================================================
+; CLEAR PREVIOUS PLANE POSITION
+; ============================================================
+; Uses BoolMoveLeft / BoolMoveRight to determine which
+; eraser widths to use. Prevents leftover ASCII.
+; ============================================================
+
 ClearPlaneLastPosition proc uses eax
 
     call GetTempXY
-    ; check if last move is left
+
+    ; Case 1: last move was LEFT
     cmp BoolMoveLeft, 1
     je LastMoveWasLeft
-    ; check if last move is right
+
+    ; Case 2: last move was RIGHT
     cmp BoolMoveRight, 1
     je LastMoveWasRight
 
-    ; if the plane stand still last second
+    ; Case 3: plane did not move last frame
 DidNotMoveLastSecond:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, temp, addr check
     dec temp.X
@@ -679,7 +950,10 @@ DidNotMoveLastSecond:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
     jmp finish
 
-    ; if the plane move left last second
+
+; ------------------------------------------------------------
+; Last frame was LEFT movement → erase slanted-left widths
+; ------------------------------------------------------------
 
 LastMoveWasLeft:
     dec temp.X
@@ -701,7 +975,10 @@ LastMoveWasLeft:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
     jmp finish
 
-    ; if the plane move right last second
+
+; ------------------------------------------------------------
+; Last frame was RIGHT movement → erase slanted-right widths
+; ------------------------------------------------------------
 
 LastMoveWasRight:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
@@ -719,63 +996,90 @@ LastMoveWasRight:
     inc temp.X
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser11, lengthof eraser11, temp, addr check
-    jmp finish
 
 finish:
     ret
 ClearPlaneLastPosition endp
 
-
+; =====================================================================
+;  BULLET FLYING ROUTINE
+;  This procedure updates all bullets currently active on screen.
+;  It moves each bullet upward, erases its previous position and
+;  removes it once it reaches the top boundary.
+; =====================================================================
 
 BulletFly proc uses eax
+
+; -------------------------------
+; Check if bullet #1 is active
+; -------------------------------
 CheckBullet1:
-    cmp bullet1.bool, 1
+    cmp bullet1.bool, 1       ; bullet1.bool = 1 → bullet is flying
     je Bullet1_Flying
 
+; -------------------------------
+; Check if bullet #2 is active
+; -------------------------------
 CheckBullet2:
     cmp bullet2.bool, 1
     je Bullet2_Flying
 
+; -------------------------------
+; Check if bullet #3 is active
+; -------------------------------
 CheckBullet3:
     cmp bullet3.bool, 1
     je Bullet3_Flying
 
+; -------------------------------
+; Check if bullet #4 is active
+; -------------------------------
 CheckBullet4:
     cmp bullet4.bool, 1
     je Bullet4_Flying
 
+; -------------------------------
+; Check if bullet #5 is active
+; -------------------------------
 CheckBullet5:
     cmp bullet5.bool, 1
     je Bullet5_Flying
-    ret
+    ret                         ; none are active → exit
 
-; first bullet flying motion
 
+; =====================================================================
+;  BULLET #1 FLYING
+; =====================================================================
 Bullet1_Flying:
+    ; erase old bullet position
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, bullet1.XY, addr check
+
     mov ax, bullet1.XY.Y
-    dec ax
-    cmp ax, 1
-    jae Bullet1_NotYetTop
-    ; Bullet 1 is at top
+    dec ax                      ; compute next Y (moving upward)
+    cmp ax, 1                   ; reached top row?
+    jae Bullet1_NotYetTop       ; still within screen
+
+    ; bullet hit the top border → deactivate
     mov bullet1.bool, 0
-    mov bullet1.XY.Y, 25
-    jmp CheckBullet2
+    mov bullet1.XY.Y, 25        ; move it off-screen for safety
+    jmp CheckBullet2            ; continue to next bullet
 
 Bullet1_NotYetTop:
-    dec bullet1.XY.Y
+    dec bullet1.XY.Y            ; actually move it up
     invoke WriteConsoleOutputCharacter, outputHandle, addr bullet1.body, lengthof bullet1.body, bullet1.XY, addr check
     jmp CheckBullet2
 
-; second bullet flying motion
 
+; =====================================================================
+;  BULLET #2 FLYING
+; =====================================================================
 Bullet2_Flying:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, bullet2.XY, addr check
     mov ax, bullet2.XY.Y
     dec ax
     cmp ax, 1
     jae Bullet2_NotYetTop
-    ; Bullet 2 is at top
+
     mov bullet2.bool, 0
     mov bullet2.XY.Y, 25
     jmp CheckBullet3
@@ -785,13 +1089,17 @@ Bullet2_NotYetTop:
     invoke WriteConsoleOutputCharacter, outputHandle, addr bullet2.body, lengthof bullet2.body, bullet2.XY, addr check
     jmp CheckBullet3
 
+
+; =====================================================================
+;  BULLET #3 FLYING
+; =====================================================================
 Bullet3_Flying:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, bullet3.XY, addr check
     mov ax, bullet3.XY.Y
     dec ax
     cmp ax, 1
     jae Bullet3_NotYetTop
-    ; Bullet 3 is at top
+
     mov bullet3.bool, 0
     mov bullet3.XY.Y, 25
     jmp CheckBullet4
@@ -801,12 +1109,17 @@ Bullet3_NotYetTop:
     invoke WriteConsoleOutputCharacter, outputHandle, addr bullet3.body, lengthof bullet3.body, bullet3.XY, addr check
     jmp CheckBullet4
 
+
+; =====================================================================
+;  BULLET #4 FLYING
+; =====================================================================
 Bullet4_Flying:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, bullet4.XY, addr check
     mov ax, bullet4.XY.Y
     dec ax
     cmp ax, 1
     jae Bullet4_NotYetTop
+
     mov bullet4.bool, 0
     mov bullet4.XY.Y, 25
     jmp CheckBullet5
@@ -816,12 +1129,17 @@ Bullet4_NotYetTop:
     invoke WriteConsoleOutputCharacter, outputHandle, addr bullet4.body, lengthof bullet4.body, bullet4.XY, addr check
     jmp CheckBullet5
 
+
+; =====================================================================
+;  BULLET #5 FLYING
+; =====================================================================
 Bullet5_Flying:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser1, lengthof eraser1, bullet5.XY, addr check
     mov ax, bullet5.XY.Y
     dec ax
     cmp ax , 1
     jae Bullet5_NotYetTop
+
     mov bullet5.bool, 0
     mov bullet5.XY.Y, 25
     ret
@@ -833,32 +1151,45 @@ Bullet5_NotYetTop:
 
 BulletFly endp
 
-; spawning meteor
+
+
+; =====================================================================
+;  SPAWN METEOR (ONLY IF NONE ACTIVE)
+; =====================================================================
 
 SpawnMeteor proc uses eax
-    cmp meteor1.bool, 1
-    jne m1
+    cmp meteor1.bool, 1         ; meteor already active?
+    jne m1                     ; if not → spawn new
     ret
+
 m1:
-    mov eax, 53
+    mov eax, 53                ; choose random X within 53 columns
     call RandomRange
-    add ax, 5
+    add ax, 5                  ; shift right so meteor never spawns at border
     mov meteor1.XY.X, ax
-    mov meteor1.XY.Y, -1
-    mov meteor1.bool, 1
+    mov meteor1.XY.Y, -1       ; start above screen
+    mov meteor1.bool, 1        ; mark meteor as flying
     ret
 SpawnMeteor endp
 
-; meteor flying
+
+
+; =====================================================================
+;  METEOR FALLING MOTION
+; =====================================================================
 
 MeteorFly proc uses eax
 
 CheckFlyingTime:
-    call TimeToFly
+    call TimeToFly             ; spawn timing logic
     cmp BoolFlying, 1
-    je Fly
+    je Fly                     ; only move when timer fires
     ret
 
+
+; -------------------------------
+; meteor 1 flying logic
+; -------------------------------
 Fly:
 CheckMeteor1:
     cmp meteor1.bool, 1
@@ -866,6 +1197,7 @@ CheckMeteor1:
     ret
 
 m1Flying:
+    ; erase meteor previous location
     movzx eax, meteor1.XY.X
     mov temp.X, ax
     movzx eax, meteor1.XY.Y
@@ -873,12 +1205,16 @@ m1Flying:
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
     inc temp.Y
     invoke WriteConsoleOutputCharacter, outputHandle, addr eraser6, lengthof eraser6, temp, addr check
+
     mov ax, meteor1.XY.Y
-    inc ax
-    cmp ax, 23
+    inc ax                      ; next Y coordinate (downward)
+    cmp ax, 23                  ; bottom boundary?
     jbe NotYetBottom
+
+    ; meteor reached bottom → remove it, count as plane hit
     mov meteor1.bool, 0
     inc result.bool
+
 CheckExplosion1:
     cmp explode1.mode, 0
     je explosion11
@@ -887,14 +1223,14 @@ CheckExplosion1:
 explosion11:
     mov explode1.mode, 1
     movzx eax, meteor1.XY.X
-    add eax, 2
+    add eax, 2                  ; position explosion slightly centered
     mov explode1.XY.X, ax
     movzx eax, meteor1.XY.Y
     mov explode1.XY.Y, ax
     ret
 
 NotYetBottom:
-    inc meteor1.XY.Y
+    inc meteor1.XY.Y            ; move meteor downward
     movzx eax, meteor1.XY.X
     mov temp.X, ax
     movzx eax, meteor1.XY.Y
@@ -905,19 +1241,28 @@ NotYetBottom:
     ret
 MeteorFly endp
 
-; hit
+
+
+; =====================================================================
+;   BULLET → METEOR COLLISION DETECTION
+; =====================================================================
 
 BulletHit proc uses eax ebx edx
 
 CheckMeteor1Flying:
     cmp meteor1.bool, 1
     je Meteor1IsFlying
-
     ret
+
 Meteor1IsFlying:
+
+; --------------------------------------------------------
+;  CHECK BULLET #1 COLLISION
+; --------------------------------------------------------
 
 check_bullet1:
 
+    ; compare bullet Y with meteor Y (or meteor Y+1)
     mov ax, bullet1.XY.Y
     mov bx, meteor1.XY.Y
     mov dx, bx
@@ -929,6 +1274,7 @@ check_bullet1:
     jmp check_bullet2
 
 SameAltitude1:
+    ; compare bullet X with meteor X (meteor is 2 chars wide)
     mov ax, bullet1.XY.X
     mov bx, meteor1.XY.X
     mov dx, bx
@@ -943,6 +1289,8 @@ SameXY1:
     inc score
     mov bullet1.bool, 0
     mov meteor1.bool, 0
+
+    ; erase meteor graphic
     movzx eax, meteor1.XY.X
     mov temp.X, ax
     movzx eax, meteor1.XY.Y
@@ -962,8 +1310,14 @@ explosion11:
     mov explode1.XY.X, ax
     movzx eax, bullet1.XY.Y
     mov explode1.XY.Y, ax
-    mov bullet1.XY.Y, 25
+    mov bullet1.XY.Y, 25     ; reset bullet offscreen
     ret
+
+
+
+; --------------------------------------------------------
+;  CHECK BULLET #2 COLLISION
+; --------------------------------------------------------
 
 check_bullet2:
 
@@ -1014,6 +1368,9 @@ explosion12:
     mov bullet2.XY.Y, 25
     ret
 
+; --------------------------------------------------------
+;  CHECK BULLET #3 COLLISION
+; --------------------------------------------------------
 
 check_bullet3:
 
@@ -1061,9 +1418,19 @@ explosion13:
     mov bullet3.XY.Y, 25
     ret
 
-; check bullet4
+; --------------------------------------------------------
+;  CHECK BULLET #4 COLLISION
+; --------------------------------------------------------
 
+; check bullet4
+; TO-DO
+
+; --------------------------------------------------------
+;  CHECK BULLET #5 COLLISION
+; --------------------------------------------------------
 ; check bullet5
+; TO-DO
+
 Finish:
     ret
 BulletHit endp
