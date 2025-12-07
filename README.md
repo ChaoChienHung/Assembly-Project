@@ -52,7 +52,7 @@ The Irvine32 library and WinDbg are provided in the windbg folder.
 |-----------------|---------------------------------------|
 | Chao Chien Hung | https://github.com/ChaoChienHung      |
 | Billy           | https://github.com/Billy152op         |
-| Clark           | *(no link provided)*                  |
+| Clark           | clarkwu0906@gmail.com                 |
 
 ## Acknowledgement
 
