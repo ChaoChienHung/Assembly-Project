@@ -14,6 +14,11 @@ In the game, the player controls a spaceship to shoot bullets and destroy incomi
 
 ---
 
+## Gameplay
+![SpaceshipX_gameplay](https://github.com/user-attachments/assets/5f0d6083-4207-45a3-8915-a2183d5cfbad)
+
+---
+
 ## Project Structure
 
 ```bash
